@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Database | dictyBase Developers]]></title>
+  <link href="http://dictyBase.github.com/blog/categories/database/atom.xml" rel="self"/>
+  <link href="http://dictyBase.github.com/"/>
+  <updated>2012-05-01T16:34:26-05:00</updated>
+  <id>http://dictyBase.github.com/</id>
+  <author>
+    <name><![CDATA[dictyBase Developers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Vagrant box with Oracle XE]]></title>
+    <link href="http://dictyBase.github.com/blog/2012/04/30/vagrant-box-with-oracle-xe/"/>
+    <updated>2012-04-30T18:14:00-05:00</updated>
+    <id>http://dictyBase.github.com/blog/2012/04/30/vagrant-box-with-oracle-xe</id>
+    <content type="html"><![CDATA[<p>I recently had to set up a VM with Oracle for developmental use. The easiest way to do it was using Vagrant and Oracle XE. I have it working and I thought I will share my 2-bits. Requirements are to have <a href="http://downloads.vagrantup.com/tags/v1.0.2", target="_blank">Vagrant</a> and <a href="https://www.virtualbox.org/wiki/Downloads", target="_blank">VirtualBox</a> installed. We use CentOS6 and needed a VM dedicated to Oracle. A minimal CentOS should suffice. A Vagrant box can be created as follows;</p>
+
+<p>First do <code>gem install veewee</code>. <code>veewee templates</code> will list all the available templates for Vagrant boxes. Then peform the following steps in order;
+```
+vagrant basebox define 'CentOS' 'CentOS-6.0-x86_64-minimal'
+vagrant basebox build 'CentOS'</p>
+
+<p>```</p>
+
+<p>Enable the <code>:hostonly</code> option to allow conecting to the VM from the host.</p>
+]]></content>
+  </entry>
+  
+</feed>
