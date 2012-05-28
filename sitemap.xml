@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
+    <url>
+        <loc>http://dictyBase.github.com/blog/2012/04/30/vagrant-box-with-oracle-xe/</loc>
+        <lastmod>2012-05-01T16:27:50-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/about/</loc>
+        <lastmod>2012-05-01T15:57:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/blog/archives/</loc>
+        <lastmod>2012-05-01T16:27:50-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/</loc>
+        <lastmod>2012-05-01T16:27:50-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/todo-list/</loc>
+        <lastmod>2012-05-01T15:58:47-05:00</lastmod>
+    </url>
+</urlset>
