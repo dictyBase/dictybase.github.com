@@ -75,23 +75,25 @@ perlbrew use lib deploy-perl@deploy-tasks
 cpanm -n Rex
 ```
 
+
 ## Before we start
-+ The remote box should be accessible by ssh
-+ It also have to be configured for public key based SSH authentication. In short,  
+The remote box should be accessible by ssh.
+
+It also have to be configured for public key based SSH authentication. In short,  
 ```bash
 ssh-keygen -t rsa
 ```
 Then add the content of ~/.ssh/id_rsa.pub file from local machine to the ~/.ssh/authorized_keys of
 remote machine.
 
-+ Check the list of tasks that are available to run. Make sure which are mentioned to run
+Check the list of tasks that are available to run. Make sure which are mentioned to run
 as sudo, pass the sudo password (-S)in the argument
 ```bash
 rex -T
 rex -H <host> -S <sudo pass> <task_name>
 ```
 
-+ Create a default Rexfile and add the correct user name and ssh key credentials.
+Create a default Rexfile and add the correct user name and ssh key credentials.
 ```bash
 cp sample.Rexfile Rexfile
 ```
@@ -101,9 +103,72 @@ cp sample.Rexfile Rexfile
 The remote deployment will be done on a remote CentOS box and so yum/rpm will be the default
 package manager.
 
-#### Add extra repositories
+Add extra repositories
 ```bash 
-rex -H <host> -S <sudo_pass> add:elrepo
+rex -H <host> -s -S <sudo_pass> add:repos
+```
+
+Add extra sudoers configuration file
+```bash
+rex -H <host> -s -S <sudo_pass> add:sudoers --file=conf.d/sudoers.multigenome
+```
+
+Add user to developers and deploy groups
+```bash
+rex -H <host> -s -S <sudo_pass> add:groups --name=developer:deploy
+rex -H <host> -s -S <sudo_pass> add:user --user=<user> --pass=<pass> --groups=developer:deploy
+```
+
+Setup shared folder
+```bash
+Remember the shared folder(by default /dictybase) has to mounted with acl support
+rex -H <host> -s -S <sudo_pass> setup:shared-folder --group=[deploy] --folder=[/dictybase]
+```
+
+Oracle client setup 
+  It installs the instant client rpms and sets up oracle environment
+  globally. Oracle instantclient could be downloaded from
+  [here](http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html). For here we
+  need three rpms
+* oracle-instantclient-basic-10.2.0.4-1.x86_64.rpm
+* oracle-instantclient-sqlplus-10.2.0.4-1.x86_64.rpm
+* oracle-instantclient-devel-10.2.0.4-1.x86_64.rpm
+```bash
+rex -H <host> -S <sudo_pass> setup:oracle-client --rpm=rpms 
+rex -H <host> -S <sudo_pass> setup:oracle:tnsnames --file=[file] \ 
+    --host=[host] --sid=[sid] --service=[service_name]
+```
+
+Set daemontools
+```bash
+rex -H <host> -s -S <sudo_pass> setup:daemontools
+```
+
+Mojolicious web application setup
+```bash
+rex -H <host> -s -S <sudo_pass> setup:global-mojo --mode=[staging|production] 
+```
+
+Apache setup
+```bash
+rex -H <host> -s -S <sudo_pass> setup:apache:envvars --file=[file]
+rex -H <host> -s -S <sudo_pass> setup:apache:vhost --file=[file] --name=multigenome.conf
+rex -H <host> -s -S <sudo_pass> setup:apache:perl-code --file=[file]
+rex -H <host> -s -S <sudo_pass> setup:apache:startup
+```
+
+Install packages
+```bash
+rex -H <host> -s -S <sudo_pass> install:dicty-pack
 ```
 
 
+## Setup perl environment 
+perl environment for deployment will be setup using perlbrew in the shared
+folder(/dictybase).
+```bash
+rex -H <host> perlbrew:install --install-root=/dictybase/perl5 --system=1
+rex -H <host> perlbrew:install-cpanm 
+rex -H <host> perl:install-notest 
+rex -H <host> perlbrew:switch --version=perl-5.10.1 
+rex -H <host> perl:install-toolchain 
