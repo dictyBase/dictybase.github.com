@@ -6,6 +6,7 @@ comments: false
 sharing: true
 footer: true
 author: Siddhartha Basu
+enlist: true
 categories:
  - Remote virtual machine
  - Setup
@@ -19,51 +20,9 @@ categories:
 git://github.com/dictyBase/deploy-task.git
 ```
 
-#### Install perlbrew and perl
-Installation of perlbrew is documented [here](http://perlbrew.pl/). For perl use
-[perl-5.12.4](https://metacpan.org/release/LBROCARD/perl-5.12.4),  however other versions
-namely perl-5.10.1, perl-5.14.2,  perl-5.16.0 will be fine. 
+#### Setup perl environment
+Documented [here](/perl-setup)
 
-```bash
-perlbrew install -j 4 perl-5.12.4
-perlbrew alias perl-5.12.4 deploy-perl
-perlbrew switch deploy-perl
-```
-
-#### Install friends of perlbrew
-This is mostly for installing perl modules to manage dependencies. They
-should be installed with any new installation of perl.
-
-```bash
-perlbrew install-cpanm
-cpanm -n App::cpanoutdated App::pmuninstall 
-```
-__Note:__ The (-n) option is used for faster module installation as it skips the unit
-testing. 
-
-
-#### Managing modules
-Always create a project specific local lib environment(sandbox) for managing module dependencies.
-```bash
-perlbrew lib create project_name
-perlbrew use perl_name@project_name
-```
-
-Installation
-```
-perlbrew use lib perl_name@project_name
-cpanm -n some_module_name
-```
-
-Update
-```bash
-cpan-outdated -p | cpanm -n
-```
-
-Uninstall
-```bash
-pm-uninstall some_module_name
-```
 
 #### Install Rex
 The perl [module](https://metacpan.org/module/Rex) for writing and running all deployment tasks.
@@ -126,10 +85,12 @@ rex -H <host> -s -S <sudo_pass> setup:shared-folder --group=[deploy] --folder=[/
 ```
 
 Oracle client setup 
+
   It installs the instant client rpms and sets up oracle environment
   globally. Oracle instantclient could be downloaded from
   [here](http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html). For here we
   need three rpms
+
 * oracle-instantclient-basic-10.2.0.4-1.x86_64.rpm
 * oracle-instantclient-sqlplus-10.2.0.4-1.x86_64.rpm
 * oracle-instantclient-devel-10.2.0.4-1.x86_64.rpm
@@ -166,9 +127,11 @@ rex -H <host> -s -S <sudo_pass> install:dicty-pack
 ## Setup perl environment 
 perl environment for deployment will be setup using perlbrew in the shared
 folder(/dictybase).
+
 ```bash
 rex -H <host> perlbrew:install --install-root=/dictybase/perl5 --system=1
 rex -H <host> perlbrew:install-cpanm 
 rex -H <host> perl:install-notest 
 rex -H <host> perlbrew:switch --version=perl-5.10.1 
 rex -H <host> perl:install-toolchain 
+```
