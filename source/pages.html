@@ -1,0 +1,16 @@
+---
+layout: page
+title: "List of pages"
+date: 2012-06-21 07:41
+comments: false
+sharing: true
+footer: true
+---
+
+<ul>
+  {% for page in site.pages %}
+    {% if page.layout == 'page'  and page.enlist %}
+      <li><a href="{{ page.url }}">{{ page.title }}</a>
+    {% endif %}
+  {% endfor %}
+</ul>
