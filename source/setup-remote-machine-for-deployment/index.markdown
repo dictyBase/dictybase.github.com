@@ -45,16 +45,28 @@ ssh-keygen -t rsa
 Then add the content of ~/.ssh/id_rsa.pub file from local machine to the ~/.ssh/authorized_keys of
 remote machine.
 
+#### Running rex tasks
+
+Create a default Rexfile and add the correct user name and ssh key credentials.
+```
+cp Rexfile.sample Rexfile
+```
+{% include_code 'Sample rexfile' lang:perl Rexfile %}
+
+
 Check the list of tasks that are available to run. Make sure which are mentioned to run
 as sudo, pass the sudo password (-S)in the argument
-```bash
+```
 rex -T
 rex -H <host> -S <sudo pass> <task_name>
 ```
 
-Create a default Rexfile and add the correct user name and ssh key credentials.
-```bash
-cp sample.Rexfile Rexfile
+To run sudo globally,  add it to the Rexfile
+{% include_code 'Rexfile with sudo on' lang:perl Rexfile_sudo %}
+
+To run a non-default Rexfile
+```
+rex -H <host> -f [other_file] task_name
 ```
 
 
@@ -78,11 +90,19 @@ rex -H <host> -s -S <sudo_pass> add:groups --name=developer:deploy
 rex -H <host> -s -S <sudo_pass> add:user --user=<user> --pass=<pass> --groups=developer:deploy
 ```
 
+
+Install packages
+```bash
+rex -H <host> -s -S <sudo_pass> install:dicty-pack
+```
+
 Setup shared folder
 ```bash
-Remember the shared folder(by default /dictybase) has to mounted with acl support
-rex -H <host> -s -S <sudo_pass> setup:shared-folder --group=[deploy] --folder=[/dictybase]
+Remember the device is expected to have a ext4 partition
+rex -H <host> -s -S <sudo_pass> setup:shared-folder --group=[deploy] \ 
+               --folder=[/dictybase] --device=[]
 ```
+
 
 Oracle client setup 
 
@@ -111,17 +131,34 @@ rex -H <host> -s -S <sudo_pass> setup:global-mojo --mode=[staging|production]
 ```
 
 Apache setup
-```bash
+```
 rex -H <host> -s -S <sudo_pass> setup:apache:envvars --file=[file]
+```
+The following envvars have to be defined
+```apache
+export ASSETS_DIR=....
+export WEBAPPS_DIR=...
+export WEBHOST_NAME=....
+export DICTYHOST_NAME=....
+export MULTIGENOME_WEBROOT=....
+export GBROWSE_HOST=....
+```
+
+```
 rex -H <host> -s -S <sudo_pass> setup:apache:vhost --file=[file] --name=multigenome.conf
+```
+A minimal configuration file
+{% include_code 'multigenome virtualhost configration' lang:apache multigenome.conf %}
+
+```
 rex -H <host> -s -S <sudo_pass> setup:apache:perl-code --file=[file]
+```
+{% include_code 'mod_perl configuration' lang:apache perl.conf %}
+
+```
 rex -H <host> -s -S <sudo_pass> setup:apache:startup
 ```
 
-Install packages
-```bash
-rex -H <host> -s -S <sudo_pass> install:dicty-pack
-```
 
 
 ## Setup perl environment 

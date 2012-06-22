@@ -1,0 +1,32 @@
+sudo:
+  file: file
+group:
+  name: hello
+user:
+  user: newuser
+  pass: newpass
+  groups: 'group1:group2'
+shared:
+  group: 'grp'
+  folder: '/shared'
+  device: '/dev/sdb1'
+oracle:
+  rpm: '/home/user/downloads/rpms'
+  file: 'tnsnames.ora'
+  host: localhost
+  sid:  orcl
+  service: served
+mojo:
+  mode: staging
+apache:
+  envvars:
+    file: 'env.txt'
+  vhost:
+    file: 'genome.conf'
+    name: genome
+  perl:
+     file: 'perl.conf'
+
+perlbrew:
+  root: '/shared'
+  perl: '5.10.1'
