@@ -1,32 +1,45 @@
+# sets up various command aliases and two groups sys and developer
+# with varying level of access
 sudo:
-  file: file
+  file: conf.d/sudoers.multigenome
+
+# create the groups and then add the user to that group
+# could add extra groups separated by colon
 group:
-  name: hello
+  name: 'developer:sys:deploy'
 user:
   user: newuser
   pass: newpass
-  groups: 'group1:group2'
+  groups: 'developer:deploy'
+
+# the device should have an ext4 partition
 shared:
-  group: 'grp'
+  group: 'deploy'
   folder: '/shared'
   device: '/dev/sdb1'
+
+# Download rpms from here
+# http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html
 oracle:
   rpm: '/home/user/downloads/rpms'
-  file: 'tnsnames.ora'
+  file: 'conf.d/tnsnames.ora'
   host: localhost
   sid:  orcl
   service: served
 mojo:
   mode: staging
+
+# look in the step by step section for sample files
 apache:
   envvars:
-    file: 'env.txt'
+    file: 'env.sh'
   vhost:
     file: 'genome.conf'
     name: genome
   perl:
-     file: 'perl.conf'
+     file: 'conf.d/perl.conf'
 
+# this should match the shared folder 
 perlbrew:
   root: '/shared'
   perl: '5.10.1'

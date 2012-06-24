@@ -58,7 +58,7 @@ Check the list of tasks that are available to run. Make sure which are mentioned
 as sudo, pass the sudo password (-S)in the argument
 ```
 rex -T
-rex -H <host> -S <sudo pass> <task_name>
+rex -H <host> -s -S <sudo pass> <task_name>
 ```
 
 To run sudo globally,  add it to the Rexfile
@@ -69,10 +69,35 @@ To run a non-default Rexfile
 rex -H <host> -f [other_file] task_name
 ```
 
+#### Last but not the least
+* The shared folder is assumed to be hosted on a separated partition. It has to be created
+with an ext4 filesystem before any of the task is being run.
+* Various configuration files needed for sys admin tasks are either present in **conf.d**
+  folder or mentioned in the detail guide. Make sure to consult them if something is
+  unclear.
+
 
 ## Sys admin tasks
-The remote deployment will be done on a remote CentOS box and so yum/rpm will be the default
-package manager.
+The remote deployment is expected to be done on a remote CentOS box and so yum/rpm will be the default package manager.
+
+### Quick steps
+
+Create a yaml file in **$HOME/.rex/config.yml** and run the given Rex tasks
+{% include_code 'sample rex config' lang:yaml config.yml %}
+
+Rex tasks
+```
+rex -H <host> -s setup:dicty:box
+rex -H <host> setup:dicty:perl
+
+# check for status of perl installation before running the toolchain task
+rex -H <host> perl:install-status
+rex -H <host> setup:dicty:perl-toolchain
+```
+
+
+### Alternate step by step
+**Skip** this entire section if you have already gone through **Quick steps**
 
 Add extra repositories
 ```bash 
