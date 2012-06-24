@@ -34,7 +34,7 @@ apache:
   envvars:
     file: 'env.sh'
   vhost:
-    file: 'genome.conf'
+    file: 'conf.d/apache_site.conf'
     name: genome
   perl:
      file: 'conf.d/perl.conf'
