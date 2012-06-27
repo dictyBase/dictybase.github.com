@@ -33,7 +33,7 @@ will show you the list of perls that can be installed.
 
 ```bash
 perlbrew install -j 4 perl-5.10.1
-perlbrew alias perl-5.10.1 deploy-perl
+perlbrew alias create perl-5.10.1 deploy-perl
 perlbrew switch deploy-perl
 ```
 
@@ -62,7 +62,7 @@ perlbrew use perl_name@project_name
 
 ##### Installation
 ```
-perlbrew use lib perl_name@project_name
+perlbrew use perl_name@project_name
 cpanm -n some_module_name
 ```
 
