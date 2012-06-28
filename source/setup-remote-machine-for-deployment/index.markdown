@@ -38,20 +38,25 @@ cpanm -n Rex
 ## Before we start
 The remote box should be accessible by ssh.
 
-It also have to be configured for public key based SSH authentication. In short,  
+It also have to be configured for public key based SSH authentication with any
+**passphrase**. It's recommend not to use the default one,  
 ```bash
-ssh-keygen -t rsa
+ssh-keygen -t rsa -f [filename]
 ```
-Then add the content of ~/.ssh/id_rsa.pub file from local machine to the ~/.ssh/authorized_keys of
-remote machine.
+Then add the content of *~/.ssh/[filename]_rsa.pub* file from 
+local machine to the *~/.ssh/authorized_keys* of
+remote machine. Refer to the **ssh-key** rex task below for this transfer.
 
 #### Running rex tasks
 
+All the rex task are going to run remotely,  so it is **not at all needed to be
+installed** on remote machine.
 Create a default Rexfile and add the correct user name and ssh key credentials.
 ```
 cp Rexfile.sample Rexfile
 ```
-{% include_code 'Sample rexfile' lang:perl Rexfile %}
+{% include_code 'Sample rexfile public key' lang:perl Rexfile %}
+{% include_code 'Sample Rexfile with password' lang:perl Rexfile_pass %}
 
 
 Check the list of tasks that are available to run. Make sure which are mentioned to run
@@ -72,13 +77,17 @@ rex -H <host> -f [other_file] task_name
 #### Last but not the least
 * The shared folder is assumed to be hosted on a separated partition. It has to be created
 with an ext4 filesystem before any of the task is being run.
+* However in case of shared device which is already mounted the above step is not needed.
+  Refer to the **Setup shared folder** section below for detail.
 * Various configuration files needed for sys admin tasks are either present in **conf.d**
   folder or mentioned in the detail guide. Make sure to consult them if something is
   unclear.
 
 
 ## Sys admin tasks
-The remote deployment is expected to be done on a remote CentOS box and so yum/rpm will be the default package manager.
+The tasks are assumed to be run on a remote CentOS box and so yum/rpm is selected for
+package installation. At this point no heuristics is performed to identify the type of
+remote box.
 
 ### Quick steps
 
@@ -115,11 +124,14 @@ rex -H <host> -s -S <sudo_pass> add:groups --name=developer:deploy
 rex -H <host> -s -S <sudo_pass> add:user --user=<user> --pass=<pass> --groups=developer:deploy
 ```
 
+---
 
 Install packages
 ```bash
 rex -H <host> -s -S <sudo_pass> install:dicty-pack
 ```
+
+---
 
 Setup shared folder
 ```bash
@@ -127,23 +139,19 @@ Remember the device is expected to have a ext4 partition
 rex -H <host> -s -S <sudo_pass> setup:shared-folder --group=[deploy] \ 
                --folder=[/dictybase] --device=[]
 ```
-
-
-Oracle client setup 
-
-  It installs the instant client rpms and sets up oracle environment
-  globally. Oracle instantclient could be downloaded from
-  [here](http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html). For here we
-  need three rpms
-
-* oracle-instantclient-basic-10.2.0.4-1.x86_64.rpm
-* oracle-instantclient-sqlplus-10.2.0.4-1.x86_64.rpm
-* oracle-instantclient-devel-10.2.0.4-1.x86_64.rpm
+The above task is suitable when the entire device is dedicated for the shared folder.
+However,  if the shared folder has to coexist in a device(shared folder) with other
+folders,  the run the following task ...
 ```bash
-rex -H <host> -S <sudo_pass> setup:oracle-client --rpm=rpms 
-rex -H <host> -S <sudo_pass> setup:oracle:tnsnames --file=[file] \ 
-    --host=[host] --sid=[sid] --service=[service_name]
+rex -H <host> -s -S <sudo_pass> setup:shared-folder-remount --group=[deploy] \ 
+               --folder=[/dictybase] --base-folder[$HOME]
 ```
+It will remount the base folder with **acl** and sets the proper share permission for the
+folder. However,  it is not persistent over reboot,  so add the acl entry to fstab
+manually to make it stick.
+
+-------
+
 
 Set daemontools
 ```bash
@@ -154,6 +162,9 @@ Mojolicious web application setup
 ```bash
 rex -H <host> -s -S <sudo_pass> setup:global-mojo --mode=[staging|production] 
 ```
+
+---
+
 
 Apache setup
 ```
@@ -184,14 +195,32 @@ rex -H <host> -s -S <sudo_pass> setup:apache:perl-code --file=[file]
 rex -H <host> -s -S <sudo_pass> setup:apache:startup
 ```
 
+---
+
+Oracle client setup 
+
+  It installs the instant client rpms and sets up oracle environment
+  globally. Oracle instantclient could be downloaded from
+  [here](http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html). For here we
+  need three rpms
+
+* oracle-instantclient-basic-10.2.0.4-1.x86_64.rpm
+* oracle-instantclient-sqlplus-10.2.0.4-1.x86_64.rpm
+* oracle-instantclient-devel-10.2.0.4-1.x86_64.rpm
+```bash
+rex -H <host> -S <sudo_pass> setup:oracle-client --rpm=rpms 
+rex -H <host> -S <sudo_pass> setup:oracle:tnsnames --file=[file] \ 
+    --host=[host] --sid=[sid] --service=[service_name]
+```
+
 
 
 ## Setup perl environment 
 perl environment for deployment will be setup using perlbrew in the shared
-folder(/dictybase).
+folder(/dictybase). The first task requires sudo access if **system** argument is given.
 
 ```bash
-rex -H <host> perlbrew:install --install-root=/dictybase/perl5 --system=1
+rex -H <host> -s perlbrew:install --install-root=/dictybase/perl5 --system=1
 rex -H <host> perlbrew:install-cpanm 
 rex -H <host> perl:install-notest 
 rex -H <host> perlbrew:switch --version=perl-5.10.1 

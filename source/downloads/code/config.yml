@@ -12,11 +12,19 @@ user:
   pass: newpass
   groups: 'developer:deploy'
 
-# the device should have an ext4 partition
+# the device should have an ext4 partition and shared folder will be the only folder
+# occupying the partition
 shared:
-  group: 'deploy'
+  group: deploy
   folder: '/shared'
   device: '/dev/sdb1'
+
+# uncomment the following section for shared folder if it has to coexist with other folder in
+# the device. Make sure you comment the previous section. 
+#'shared-remount':
+#  group: deploy
+#  folder: '/home/shared'
+#  base: '/home'
 
 # Download rpms from here
 # http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html
