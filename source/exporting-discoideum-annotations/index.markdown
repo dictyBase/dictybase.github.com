@@ -15,7 +15,7 @@ It's done in pieces. First  canonical, curated, predicated gene models,  then al
 and promoters. All the exports are done from inside of __Modware-Loader__ checkout.
 First write down a basic yaml config file to be used for all the exports.
 
-```lang:yaml
+```yaml
 dsn: dbi:Oracle:database
 user: username
 password: password
@@ -30,7 +30,7 @@ $_> perl -Ilib bin/modware-export  chado2dictycanonicalgff3 -c config/dicty_gff3
                 --feature_name -o data/canonical.gff3
 ```
 
-Non-coding
+__Non-coding__
 ```bash
 $_> perl -Ilib bin/modware-export  chado2dictynoncodinggff3 -c config/dicty_gff3.yaml
                                           --feature_name -o data/noncoding.gff3
@@ -59,4 +59,13 @@ $_> perl -Ilib bin/modware-export chado2alignmentgff3 -c config/dicty_gff3.yaml 
 $_> perl -Ilib bin/modware-export chado2alignmentgff3 -c config/dicty_gff3.yaml --rt chromosome 
                 --feature_name --feature_type databank_entry --org dicty
                 --match_type nucleotide_match -o data/cDNA_clone.gff3
+```
+
+### Misc
+Promoter features ..
+
+```bash
+$_> perl -Ilib bin/modware-export  chado2alignmentgff3 -c config/dicty_gff3.yaml 
+    --rt chromosome --feature_type promoter --match_type promoter -o data/promoter.gff3 --org dicty
+    --feature_name --force_name 1 --add_description 1 --property 'details_url'
 ```
