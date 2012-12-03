@@ -6,7 +6,9 @@ comments: true
 sharing: true
 footer: true
 enlist: true
+toc: true
 ---
+
 
 Read the post [here](/obo-loading) to understand the ontology data model.
 
@@ -118,12 +120,42 @@ has 'schema' => (
     }
 );
 
+has 'connect_info' => (
+    is  => 'rw',
+    isa => 'Modware::Storage::Connection',
+    set => 'set_connect_info'
+);
+
 
 sub _check_cvprop_or_die {
 	my ($self) = @_;
 	my $row = $self->schema->resultset('Cv::Cv')->find({name => 'cv_property'});
 	croak "cv_property ontology is not loaded\n" if !$row;
 	$self->set_cvrow('cv_property', $row);
+}
+
+sub _around_connection {
+    my ($self)       = @_;
+    my $connect_info = $self->connect_info;
+    my $extra_attr   = $connect_info->extra_attribute;
+
+    my $create_statements = $self->create_temp_statements;
+    my $drop_statements   = $self->drop_temp_statements;
+
+    push @$create_statements, $extra_attr->{on_connect_do}
+        if defined $exta_attr->{on_connect_do};
+    push @$drop_statements, $extra_attr->{on_disconnect_do}
+        if defined $exta_attr->{on_disconnect_do};
+
+    $self->schema->connection(
+        $connect_info->dsn,
+        $connect_info->user,
+        $connect_info->password,
+        $connect_info->attribute,
+        {   on_connect_do => $create_statements,
+            on_disconnect_do => $drop_statements
+        }
+    );
 }
 
 sub _load_engine {
@@ -135,12 +167,16 @@ sub _load_engine {
     $self->meta->make_immutable;
     $self->transform_schema;
 }
+
+
 ```
-The loader also validates the presence of __cv_property__ ontology,  it is needed to be
-preloaded for any other ontology to be loaded later on.
++ The loader also validates the presence of __cv_property__(*_check_cvprop_or_die*) ontology,  it is needed to be
+preloaded for any other ontology to be loaded later on. 
++ The *_around_connection* method reset the storage connection and add statements for creating and dropping staging tables.
 
 
-### Methods/attributes the role needs to implement
+### Methods/attributes the backend role needs to implement
+
 
 __transform_schema__
 
@@ -183,9 +219,101 @@ sub transform_schema {
     }
 }
 ```
+ 
+
+__create_temp_statements__
+
+It creates temporary staging tables for holding the data. It expects to return an
+*ArrayRef* where each element could be a sql statement or a code reference. The create
+statments should at least create the following temporary tables ....
+
++ temp_cvterm
+
+```perl
+package Modware::Loader::Role::Ontology::WithSqlite;
+
+sub create_temp_statements {
+    return [
+        qq{
+	        CREATE TEMPORARY TABLE temp_cvterm (
+               name varchar(1024) NOT NULL, 
+               accession varchar(1024) NOT NULL, 
+               is_obsolete integer NOT NULL DEFAULT 0, 
+               is_relationshiptype integer NOT NULL DEFAULT 0, 
+               definition text, 
+            )
+   	    }
+    ];
+}
+``` 
   
-   
-  
+__drop_temp_statements__
+
+Similar to *create_temp_statments* but only to remove the staging tables.
+
+```perl
+package Modware::Loader::Role::Ontology::WithSqlite;
+
+sub drop_temp_statements {
+	return [ qq{ DROP TABLE temp_cvterm }];
+}
+```
+
+### DBIC result classes for staging tables
+These result classes maps to the staging temporary tables and gets registered with the
+main schema.
+
+```perl
+
+package Modware::Loader::Schema::Temporary;
+
+package Modware::Loader::Schema::Temporary::Cvterm';
+use strict;
+use base qw/DBIx::Class::Core/;
+
+__PACKAGE__->table('temp_cvterm');
+__PACKAGE__->add_columns(
+    'name' => { data_type => 'varchar', size => 1024 } );
+__PACKAGE__->add_columns(
+    'accession' => { data_type => 'varchar', size => 1024 } );
+__PACKAGE__->add_columns( 'definition' => { data_type => 'text' } );
+__PACKAGE__->add_columns( 'cmmt' => { data_type => 'text' } );
+__PACKAGE__->add_columns(
+    'is_relationshiptype' => { data_type => 'int', default => 0 } );
+__PACKAGE__->add_columns(
+    'is_obsolete' => { data_type => 'int', default => 0 } );
+
+1;
+
+1;
+```
+
+```perl
+package Modware::Loader::Ontology;
+use Modware::Loader::Schema::Temporary;
+
+
+has 'schema' => (
+    is      => 'rw',
+    isa     => 'Bio::Chado::Schema',
+    writer  => 'set_schema',
+    trigger => sub {
+        my ($self) = @_;
+        $self->_load_engine;
+        $self->_around_connection;
+        $self->_check_cvprop_or_die;
+        $self->_register_schema_classes;
+    }
+);
+
+sub _register_schema_classes {
+	my ($self) = @_;
+	my $schema = $self->schema;
+	$schema->register_class('TempCvterm' => 'Modware::Loader::Schema::Temporary::Cvterm');
+}
+```
+
+
 
 
 ##Ontology metadata/default namespace
@@ -476,3 +604,5 @@ sub find_or_create_cvterm_namespace {
 }
 
 ```
+
+##Loading in staging temporary tables
