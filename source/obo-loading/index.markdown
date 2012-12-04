@@ -110,4 +110,33 @@ SELECT cvterm.name name, dbxref.accession identifier
 
 ### Relationship term properties
 
-## Term relation
+## Term relationship
+__cvterm_relationship__ holds relationship between terms in terms of triplets __subject -->
+predicate --> object__.
+
+{% img /images/cvterm_relation.jpg %}
+
+A seprate table for relationship(graph edges) allows to hold children with multiple parents.
+
+```sql All immediate children of a term 
+SELECT children.name FROM cvterm  children
+JOIN cvterm_relatationship cvrel ON children.cvterm_id = cvrel.subject_id
+JOIN cvterm parent ON parent.cvterm_id = cvrel.object_id
+WHERE parent.name = 'mitochondrion';
+```
+
+```sql All immediate children with type of relation(variation) 
+SELECT children.name, relation.name FROM cvterm  children
+JOIN cvterm_relatationship cvrel ON children.cvterm_id = cvrel.subject_id
+JOIN cvterm parent ON parent.cvterm_id = cvrel.object_id
+JOIN cvterm relation ON relation.cvterm_id = cvrel.type_id
+WHERE parent.name = 'mitochondrion';
+```
+
+```sql All immediate parents with type of relation 
+SELECT parent.name, relation.name FROM cvterm  parent
+JOIN cvterm_relatationship cvrel ON parent.cvterm_id = cvrel.object_id
+JOIN cvterm children ON children.cvterm_id = cvrel.subject_id
+JOIN cvterm relation ON relation.cvterm_id = cvrel.type_id
+WHERE children.name = 'mitochondrion';
+```
