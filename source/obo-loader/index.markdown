@@ -12,10 +12,6 @@ toc: true
 
 Read the post [here](/obo-loading) to understand the ontology data model.
 
-In short,  we create a loader class under *Modware* namespace inside the
-[Modware-Loader](/install-modware-loader) distribution. Then we invoke bunch of methods
-which more or less encapsulates various stages of obo data [model](/obo-loading).
-
 ##Overall design
 We create a [Modware-Loader](/install-modware-loader) application module which instantiate
 a __Loader__ class and then call various loading specific methods on it. The __Loader__
@@ -178,7 +174,7 @@ preloaded for any other ontology to be loaded later on.
 ### Methods/attributes the backend role needs to implement
 
 
-__transform_schema__
+####transform_schema
 
   Meant for altering any column name/attributes through the schema object. For example,
   for oracle backend the *synonym* column need to be renamed and the column type for all
@@ -221,7 +217,7 @@ sub transform_schema {
 ```
  
 
-__create_temp_statements__
+####create_temp_statements
 
 It creates temporary staging tables for holding the data. It expects to return an
 *ArrayRef* where each element could be a sql statement or a code reference. The create
@@ -247,7 +243,7 @@ sub create_temp_statements {
 }
 ``` 
   
-__drop_temp_statements__
+####drop_temp_statements
 
 Similar to *create_temp_statments* but only to remove the staging tables.
 
@@ -258,6 +254,21 @@ sub drop_temp_statements {
 	return [ qq{ DROP TABLE temp_cvterm }];
 }
 ```
+
+
+####cache_threshold
+
+Maximum entries that will be held in memory before it is persisted in the staging tables.
+
+####merge_dbxrefs
+
+####merge_cvterms
+
+####merge_comments
+
+__merge_relations__
+
+
 
 ### DBIC result classes for staging tables
 These result classes maps to the staging temporary tables and gets registered with the
@@ -605,4 +616,100 @@ sub find_or_create_cvterm_namespace {
 
 ```
 
-##Loading in staging temporary tables
+##Load data in staging temporary tables
+Overall,  the loader prepares *perl data hashes* suitable for insertion and loads them in
+various staging temp tables. The entire process is wrapped around *prepare_data_for
+loading* method.
+
+```perl
+package Modware::Loader::Ontology;
+
+sub prepare_data_for_loading {
+    my ($self) = @_;
+    my $onto   = $self->ontology;
+    my $cv_id  = $self->get_cvrow( $onto->default_namespace )->cv_id;
+    my $insert_array;
+    for my $term ( @{ $onto->get_relationship_types, $onto->get_terms } ) {
+        my $insert_hash = $self->_get_insert_term_hash($term);
+        $insert_hash->{cv_id} = $cv_id;
+        push @$insert_array, $insert_hash;
+    }
+    my $schema = $self->schema;
+    $schema->resultset('TempCvterm')->populate($insert_array);
+}
+
+sub cvterms_in_staging {
+    my ($self) = @_;
+    return $self->schema->resultset('TempCvterm')->count( {} );
+}
+
+sub _get_insert_term_hash {
+    my ( $self, $term ) = @_;
+    my ( $db_id, $accession );
+    if ( $self->has_idspace( $term->id ) ) {
+        my @parsed = $self->parse_id( $term->id );
+        $db_id     = $self->find_or_create_db_id( $parsed[0] );
+        $accession = $parsed[1];
+    }
+    else {
+        $db_id     = $self->find_or_create_db_id( $self->cv_namespace->name );
+        $accession = $term->id;
+    }
+
+    my $insert_hash;
+    $insert_hash->{accession}  = $accession;
+    $insert_hash->{db_id}      = $db_id;
+    $insert_hash->{definition} = encode( "UTF-8", $term->def->text )
+        if $term->def;
+    $insert_hash->{is_relationshiptype} = 1
+        if $term->isa('OBO::Core::RelationshipType');
+    $insert_hash->{is_obsolete} = 1 if $term->is_obsolete;
+    $insert_hash->{name} = $term->name ? $term->name : $term->id;
+    $insert_hash->{comment} = $term->comment;
+    return $insert_hash;
+}
+```
+
+The __Helper__ module also gets few methods to reuse
+
+```perl
+package Modware::Loader::Role::Ontology::WithHelper;
+
+sub has_idspace {
+    my ( $self, $id ) = @_;
+    return 1 if $id =~ /:/;
+}
+
+sub parse_id {
+    my ( $self, $id ) = @_;
+    return split /:/, $id;
+}
+
+sub find_or_create_db_id {
+    my ( $self, $name ) = @_;
+    if ( $self->has_dbrow($name) ) {
+        return $self->get_dbrow($name)->db_id;
+    }
+    my $schema = $self->schema;
+    my $row    = $schema->resultset('General::Db')
+        ->find_or_create( { name => $name } );
+    $self->set_dbrow( $name, $row );
+    $row->db_id;
+}
+```
+
+And finally you call it from main application and load them in a separte transaction
+```perl
+package Modware::Load::Command::bioportalobo2chado;
+
+sub execute {
+....
+    #transaction for loading in staging temp tables
+    $guard  = $self->schema->txn_scope_guard;
+    $loader->prepare_data_for_loading;
+    $guard->commit;
+
+    $logger->info(loader->cvterms_in_staging,  " terms in temp table");
+}
+```
+

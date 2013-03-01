@@ -6,6 +6,7 @@ comments: true
 sharing: true
 footer: true
 enlist: true
+toc: true
 ---
 
 Chado database is driven by ontology(Controlled vocabulary)  and it is very important,
