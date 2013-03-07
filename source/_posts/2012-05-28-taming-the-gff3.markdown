@@ -3,7 +3,6 @@ layout: post
 title: "Taming the dictybase GFF3"
 date: 2012-05-28 08:15
 author: Siddhartha Basu
-toc: true
 comments: true
 sharing: true
 categories: 
@@ -25,6 +24,8 @@ party tools. Here are the issues that we are aware of...
   [isoforms](http://dictybase.org/Downloads/alternative_transcripts.html). There is also
   no easy way to identify the primary gene models.
 
+<!-- more -->
+
 * Pseudogenes are not represented with proper
   [SO](http://www.sequenceontology.org/resources/intro.html) terms. The pseudogenes used
   __gene__ SO term whereas the transcript is represented by __pseudogene__ term. 
@@ -41,8 +42,12 @@ party tools. Here are the issues that we are aware of...
 
 ## Possible solutions
 
-* The gene models will be split into individual GFF3 file for canonical, curated and predicted gene models. The
-	canonical will be the core GFF3 with all the chromosomes, contigs and genomic sequences.
+* The gene models will be split into individual GFF3 file for canonical, non-coding, curated and predicted gene models. 
+  The reason for separation is that each gene model has its own customized data model
+  particularly the way transcripts are represented. As a result,  they have to be treated
+  and exported separately. 
+	
+*	The canonical will be the core GFF3 with all the chromosomes, contigs and genomic sequences.
 	The rest of them (curated and predicted) will be supplemental and will contain only gene
 	structures,  no sequences and assembly features though. By default,  all
 	chromosomal features will be kept in a single file.

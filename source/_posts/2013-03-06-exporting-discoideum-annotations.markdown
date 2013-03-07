@@ -1,5 +1,6 @@
 ---
 layout: post
+author: Siddhartha Basu
 title: "Exporting D.discoideum annotations in GFF3 format"
 date: 2013-03-06 14:55
 comments: true
@@ -20,6 +21,7 @@ categories:
 [Install](https://github.com/dictyBase/Modware-Loader/blob/develop/README.md#installation) modware loader from github. 
 With a latest [cpanm](https://metacpan.org/release/App-cpanminus) (>1.6), it can be
 also directly installed from github 
+
 
 ```
 $_> cpanm git://github.com/dictyBase/Modware-Loader.git@release
@@ -45,6 +47,8 @@ user: username
 password: password
 feature_name: 1
 ```
+
+<!-- more -->
 
 All exports are done with __--feature_name__ options that exports the **name** of
 reference feature in GFF3 column 1.
@@ -84,7 +88,8 @@ Though,  we use different _subcommands_ theirs options are identical.
 
 ```bash
 $_> modware-export chado2dictynoncanonicalgff3  -c gff3.yaml -o data/noncanonical_seq_center.gff3 
-$_> modware-export chado2dictynoncanonicalv2gff3  -c gff3.yaml -o data/noncanonical_norepred.gff3 
+$_> modware-export chado2dictynoncanonicalv2gff3  -c gff3.yaml \ 
+             -o data/noncanonical_norepred.gff3 
 $_> modware-export chado2dictycuratedgff3 -c config/dicty_gff3.yaml -o data/curated.gff3
 ```
 
@@ -111,7 +116,7 @@ $_> modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/cDNA_clo
 And ultimately some promoter features ..
 
 ```bash
-$_> modware-export chado2alignmentgff3 -c gff3.yaml --org dicty \ 
-    --reference_type chromosome --feature_type promoter --match_type promoter -o data/promoter.gff3 \ 
+$_> modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/promoter.gff3 \ 
+    --reference_type chromosome --feature_type promoter --match_type promoter  
     --org dicty   --force_name 1 --add_description 1 --property 'details_url'
 ```
