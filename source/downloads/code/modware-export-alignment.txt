@@ -1,0 +1,39 @@
+$_> modware-export chado2alignmentgff3 [-?chlopu] [long options...]
+	--write_sequence_region     write sequence region header in GFF3
+	                            output,  default if off
+	-h -? --usage --help        Prints this usage information.
+	--feature_name              Output feature name instead of sequence
+	                            id in the seq_id field,  default is off.
+	--rt --reference_type       The SO type of reference feature, 
+	                            default is supercontig
+	-o --output                 Name of the output file,  if absent
+	                            writes to STDOUT
+	--feature_type              SO type of alignment features to be
+	                            exported
+	--attr --attribute          Additional database attribute
+	--match_type                SO type of alignment feature that will be
+	                            exported in GFF3, *_match* is appended to
+	                            the feature_type by default.
+	--pass -p --password        database password
+	--force_name                Adds the value of GFF3 *ID* attribute to
+	                            *Name* attribute(if absent),  off by
+	                            default
+	--add_description           If present,  add the GFF3 *Note*
+	                            attribute. It looks for a feature
+	                            property with *description* cvterm. Off
+	                            by default
+	--dsn                       database DSN
+	--property                  List of additional cvterms which will be
+	                            used to extract additional feature
+	                            properties
+	--schema_debug              Output SQL statements that are executed, 
+	                            default to false
+	-u --user                   database user
+	--log_level                 Log level of the logger,  default is error
+	-l --logfile                Name of logfile,  default goes to STDERR
+	--species                   Name of species
+	--genus                     Name of the genus
+	-c --configfile             yaml config file to specify all command
+	                            line options
+	--org --organism            Common name of the organism whose genomic
+	                            features will be exported
