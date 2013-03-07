@@ -1,0 +1,15 @@
+use lib 'lib';
+
+user 'user_name';
+
+# global sudo
+sudo_password '48343jfen';
+sudo -on;
+
+private_key 'path_to_private_key';
+public_key 'path_to_public_key';
+key_auth;
+
+require Tasks;
+
+

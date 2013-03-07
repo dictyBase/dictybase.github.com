@@ -1,0 +1,320 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Taming the dictybase GFF3 - dictyBase Developers</title>
+  <meta name="author" content="dictyBase Developers">
+
+  
+  <meta name="description" content="dictyBase GFF3 has developed
+bunch of rough edges over the years and so do not plays well with third
+party tools. Here are the issues that we are &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://dictyBase.github.com/blog/2012/05/28/taming-the-gff3/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  // Revert jQuery's '$' alias,  to avoid clashes with ender.js. NOTE: Use
+    // jQuery(...),  instead of $(...) from here on.
+      jQuery.noConflict();
+</script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript"></script>
+<script src="/javascripts/generate-toc.js" type="text/javascript"></script>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">dictyBase Developers</a></h1>
+  
+    <h2>Solving one problem at a time</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:dictyBase.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/pages.html">Pages</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Taming the Dictybase GFF3</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-28T08:15:00-05:00" pubdate data-updated="true">May 28<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>dictyBase <a href="http://dictybase.org/download/gff3/dicty_gff3.zip">GFF3</a> has developed
+bunch of rough edges over the years and so do not plays well with third
+party tools. Here are the issues that we are aware of&#8230;</p>
+
+<h2>Known Issues</h2>
+
+<ul>
+<li>Genes with multiple gene models could easily be confused as splice isoforms. It is
+particularly hard to separate in case of known
+<a href="http://dictybase.org/Downloads/alternative_transcripts.html">isoforms</a>. There is also
+no easy way to identify the primary gene models.</li>
+</ul>
+
+
+<!-- more -->
+
+
+<ul>
+<li><p>Pseudogenes are not represented with proper
+<a href="http://www.sequenceontology.org/resources/intro.html">SO</a> terms. The pseudogenes used
+<strong>gene</strong> SO term whereas the transcript is represented by <strong>pseudogene</strong> term.</p></li>
+<li><p>More than handful of assembly gap coordinates falls outside the range of reference
+feature.</p></li>
+<li><p>CDS features do not have a value for phase column,  which is required in GFF3
+specification.</p></li>
+<li><p>Missing target attribute of EST features. This is becasue the aligned coordinates of EST
+  sequences are not present in our chado database,  probably left out during the
+  loading process.</p></li>
+</ul>
+
+
+<h2>Possible solutions</h2>
+
+<ul>
+<li><p>The gene models will be split into individual GFF3 file for canonical, non-coding, curated and predicted gene models.
+The reason for separation is that each gene model has its own customized data model
+particularly the way transcripts are represented. As a result,  they have to be treated
+and exported separately.</p></li>
+<li><p>The canonical will be the core GFF3 with all the chromosomes, contigs and genomic sequences.
+The rest of them (curated and predicted) will be supplemental and will contain only gene
+structures,  no sequences and assembly features though. By default,  all
+chromosomal features will be kept in a single file.</p></li>
+<li><p>The pseudogene gene model will be fixed, the transcript will be
+  <strong>psuedogenic_transcript</strong> whereas the exons will be <strong>psuedogenic_exon</strong>.</p></li>
+<li><p>No more export of <strong>gap</strong> features at this point.</p></li>
+<li><p>CDS features will not be exported at this point,  would be included at a later point
+  along with the phase column.</p></li>
+<li><p>Rerun the EST pipeline and load alignments with EST sequence locations. It will ensure
+  the presence of <strong>Target</strong> attribute. It will be available as separate alignment
+  GFF3 file. However,  until the rerun is finished the existing alignment GFF3 will be
+  without the <strong>Target</strong> attribute.</p></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Siddhartha Basu</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-28T08:15:00-05:00" pubdate data-updated="true">May 28<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/gff3/'>GFF3</a>, <a class='category' href='/blog/categories/gene-model/'>Gene model</a>, <a class='category' href='/blog/categories/genomic-feature/'>Genomic feature</a>, <a class='category' href='/blog/categories/sequence-ontology/'>Sequence ontology</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/blog/2012/05/28/taming-the-gff3/" data-via="dictybase" data-counturl="http://dictyBase.github.com/blog/2012/05/28/taming-the-gff3/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/03/06/exporting-discoideum-annotations/" title="Next Post: Exporting D.discoideum annotations in GFF3 format">Exporting D.discoideum annotations in GFF3 format &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About </h1>
+  <p>Unofficial blog of dictybase MOD(model organism database) developers.
+  		<br/><a href="/about">More ....</a>
+  </p>
+</section>
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("dictybase", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/dictybase" class="twitter-follow-button" data-show-count="false">Follow @dictybase</a>
+  
+</section>
+
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/dictybase">@dictybase</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'dictybase',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - dictyBase Developers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+
+
+</body>
+</html>

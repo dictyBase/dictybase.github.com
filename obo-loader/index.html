@@ -1,0 +1,1562 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Loading ontology in Chado database - dictyBase Developers</title>
+  <meta name="author" content="dictyBase Developers">
+
+  
+  <meta name="description" content="Loading Ontology in Chado Database Nov 27th, 2012 Read the post here to understand the ontology data model. Overall design We create a Modware- &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://dictyBase.github.com/obo-loader/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  // Revert jQuery's '$' alias,  to avoid clashes with ender.js. NOTE: Use
+    // jQuery(...),  instead of $(...) from here on.
+      jQuery.noConflict();
+</script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript"></script>
+<script src="/javascripts/generate-toc.js" type="text/javascript"></script>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">dictyBase Developers</a></h1>
+  
+    <h2>Solving one problem at a time</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:dictyBase.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/pages.html">Pages</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article role="article">
+  
+  <header>
+    <h1 class="entry-title">Loading Ontology in Chado Database</h1>
+    <p class="meta">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-11-27T13:18:00-06:00" pubdate data-updated="true">Nov 27<span>th</span>, 2012</time></p>
+  </header>
+  
+  <p>Read the post <a href="/obo-loading">here</a> to understand the ontology data model.</p>
+
+<h2>Overall design</h2>
+
+<p>We create a <a href="/install-modware-loader">Modware-Loader</a> application module which instantiate
+a <strong>Loader</strong> class and then call various loading specific methods on it. The <strong>Loader</strong>
+itself consumes a database specific engine(Moose role) to run backend specific code as
+needed.
+The application module uses
+<a href="http://www.bioontology.org/wiki/index.php/BioPortal_REST_services">BioPortal</a> API download the latest version of ontology in
+obo format and requires and <strong>API KEY</strong> to run.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Load::Command::</span><span class="n">bioportalobo2chado</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">strict</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">namespace::</span><span class="n">autoclean</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">Moose</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">BioPortal::</span><span class="n">WebService</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">Modware::Loader::</span><span class="n">Ontology</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">OBO::Parser::</span><span class="n">OBOParser</span><span class="p">;</span>
+</span><span class='line'><span class="n">extends</span> <span class="sx">qw/Modware::Load::Chado/</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;apikey&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">is</span>            <span class="o">=&gt;</span> <span class="s">&#39;rw&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">isa</span>           <span class="o">=&gt;</span> <span class="s">&#39;Str&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">required</span>      <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">documentation</span> <span class="o">=&gt;</span> <span class="s">&#39;An API key for bioportal&#39;</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;ontology&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">is</span>            <span class="o">=&gt;</span> <span class="s">&#39;rw&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">isa</span>           <span class="o">=&gt;</span> <span class="s">&#39;Str&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">required</span>      <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">documentation</span> <span class="o">=&gt;</span> <span class="s">&#39;Name of the ontology for loading in Chado&#39;</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">execute</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$logger</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">logger</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">#download from bioportal</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$bioportal</span> <span class="o">=</span> <span class="nn">BioPortal::</span><span class="n">WebService</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">(</span> <span class="n">apikey</span> <span class="o">=&gt;</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">apikey</span> <span class="p">);</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$downloader</span> <span class="o">=</span> <span class="nv">$bioportal</span><span class="o">-&gt;</span><span class="n">downlaod</span><span class="p">(</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$downloader</span><span class="o">-&gt;</span><span class="n">is_obo_format</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$logger</span><span class="o">-&gt;</span><span class="n">logcroak</span><span class="p">(</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="p">,</span>  <span class="s">&#39; is not available in OBO format&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">#parse obo and give it to loader</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$loader</span> <span class="o">=</span> <span class="nn">Modware::Loader::</span><span class="n">Ontology</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$ontology</span> <span class="o">=</span> <span class="nn">OBO::Parser::</span><span class="n">OBOParser</span><span class="o">-&gt;</span><span class="k">new</span><span class="o">-&gt;</span><span class="n">work</span><span class="p">(</span><span class="nv">$downloader</span><span class="o">-&gt;</span><span class="n">filename</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$loader</span><span class="o">-&gt;</span><span class="n">set_ontology</span><span class="p">(</span><span class="nv">$ontology</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$loader</span><span class="o">-&gt;</span><span class="n">set_schema</span><span class="p">(</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here is how the command line looks like</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; perl -Ilib bin/modware-load bioportalobo2chado --usage
+</span><span class='line'>modware-load bioportalobo2chado <span class="o">[</span>-?chilpu<span class="o">]</span> <span class="o">[</span>long options...<span class="o">]</span>
+</span><span class='line'>  --apikey               An API key <span class="k">for </span>bioportal
+</span><span class='line'>  --ontology             Name of the ontology <span class="k">for </span>loading in Chado
+</span><span class='line'>  -i --input             Name of the input file, <span class="k">if </span>absent reads from
+</span><span class='line'>                         STDIN
+</span><span class='line'>  -h -? --usage --help   Prints this usage information.
+</span><span class='line'>  --attr --attribute     Additional database attribute
+</span><span class='line'>  --pass -p --password   database password
+</span><span class='line'>  --dsn                  database DSN
+</span><span class='line'>  --schema_debug         Output SQL statements that are executed,
+</span><span class='line'>                         default to <span class="nb">false</span>
+</span><span class='line'>  -u --user              database user
+</span><span class='line'>  --log_level            Log level of the logger,  default is error
+</span><span class='line'>  -c --configfile        yaml config file to specify all <span class="nb">command </span>line
+</span><span class='line'>                         options
+</span><span class='line'>  -l --logfile           Name of logfile,  default goes to STDERR
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <strong>Modware::Load::Chado</strong> provides the <em>schema</em> and <em>logger</em> options.</p>
+
+<figure class='code'><figcaption><span>Modware::Load::Chado module  (Chado.pm)</span> <a href='/downloads/code/Chado.pm'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Load::</span><span class="n">Chado</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">use</span> <span class="n">strict</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Other modules:</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">namespace::</span><span class="n">autoclean</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">Moose</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">YAML</span> <span class="sx">qw/LoadFile/</span><span class="p">;</span>
+</span><span class='line'><span class="n">extends</span> <span class="sx">qw/MooseX::App::Cmd::Command/</span><span class="p">;</span>
+</span><span class='line'><span class="n">with</span> <span class="s">&#39;MooseX::ConfigFromFile&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">with</span> <span class="s">&#39;Modware::Role::Command::WithIO&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">with</span> <span class="s">&#39;Modware::Role::Command::WithBCS&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">with</span> <span class="s">&#39;Modware::Role::Command::WithLogger&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Module implementation</span>
+</span><span class='line'><span class="c1">#</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;+output&#39;</span>         <span class="o">=&gt;</span> <span class="p">(</span> <span class="n">traits</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="sx">qw/NoGetopt/</span><span class="p">]</span> <span class="p">);</span>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;+output_handler&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span> <span class="n">traits</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="sx">qw/NoGetopt/</span><span class="p">]</span> <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;+configfile&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">cmd_aliases</span>   <span class="o">=&gt;</span> <span class="s">&#39;c&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">documentation</span> <span class="o">=&gt;</span> <span class="s">&#39;yaml config file to specify all command line options&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">traits</span>        <span class="o">=&gt;</span> <span class="p">[</span><span class="sx">qw/Getopt/</span><span class="p">]</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">get_config_from_file</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$file</span> <span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">LoadFile</span><span class="p">(</span><span class="nv">$file</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">__PACKAGE__</span><span class="o">-&gt;</span><span class="n">meta</span><span class="o">-&gt;</span><span class="n">make_immutable</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="mi">1</span><span class="p">;</span>    <span class="c1"># Magic true value required at end of module</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The BioPortal client API for perl is
+<a href="https://github.com/dictyBase/BioPortal-WebService">here</a>.</p>
+
+<h2>Backend specific engine</h2>
+
+<p>The loader class integrates database(storage engine) specific methods in forms of a
+<em>Moose</em> role. The role is choosen dynamically based on <em>dsn</em> value provided. The backend
+specific role is consumed as soon as the schema attribute is set.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::</span><span class="n">Ontology</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">namespace::</span><span class="n">autoclean</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">Moose</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;schema&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">is</span>      <span class="o">=&gt;</span> <span class="s">&#39;rw&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">isa</span>     <span class="o">=&gt;</span> <span class="s">&#39;Bio::Chado::Schema&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">writer</span>  <span class="o">=&gt;</span> <span class="s">&#39;set_schema&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">trigger</span> <span class="o">=&gt;</span> <span class="k">sub </span><span class="p">{</span>
+</span><span class='line'>        <span class="k">my</span> <span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$schema</span> <span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_load_engine</span><span class="p">(</span><span class="nv">$schema</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_around_connection</span><span class="p">;</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_check_cvprop_or_die</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;connect_info&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">is</span>  <span class="o">=&gt;</span> <span class="s">&#39;rw&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">isa</span> <span class="o">=&gt;</span> <span class="s">&#39;Modware::Storage::Connection&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">set</span> <span class="o">=&gt;</span> <span class="s">&#39;set_connect_info&#39;</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">_check_cvprop_or_die</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$row</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;Cv::Cv&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">find</span><span class="p">({</span><span class="n">name</span> <span class="o">=&gt;</span> <span class="s">&#39;cv_property&#39;</span><span class="p">});</span>
+</span><span class='line'>  <span class="n">croak</span> <span class="s">&quot;cv_property ontology is not loaded\n&quot;</span> <span class="k">if</span> <span class="o">!</span><span class="nv">$row</span><span class="p">;</span>
+</span><span class='line'>  <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">set_cvrow</span><span class="p">(</span><span class="s">&#39;cv_property&#39;</span><span class="p">,</span> <span class="nv">$row</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">_around_connection</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span>       <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$connect_info</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">connect_info</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$extra_attr</span>   <span class="o">=</span> <span class="nv">$connect_info</span><span class="o">-&gt;</span><span class="n">extra_attribute</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$create_statements</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">create_temp_statements</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$drop_statements</span>   <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">drop_temp_statements</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nb">push</span> <span class="nv">@$create_statements</span><span class="p">,</span> <span class="nv">$extra_attr</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">on_connect_do</span><span class="p">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="nb">defined</span> <span class="nv">$exta_attr</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">on_connect_do</span><span class="p">};</span>
+</span><span class='line'>    <span class="nb">push</span> <span class="nv">@$drop_statements</span><span class="p">,</span> <span class="nv">$extra_attr</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">on_disconnect_do</span><span class="p">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="nb">defined</span> <span class="nv">$exta_attr</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">on_disconnect_do</span><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="o">-&gt;</span><span class="n">connection</span><span class="p">(</span>
+</span><span class='line'>        <span class="nv">$connect_info</span><span class="o">-&gt;</span><span class="n">dsn</span><span class="p">,</span>
+</span><span class='line'>        <span class="nv">$connect_info</span><span class="o">-&gt;</span><span class="n">user</span><span class="p">,</span>
+</span><span class='line'>        <span class="nv">$connect_info</span><span class="o">-&gt;</span><span class="n">password</span><span class="p">,</span>
+</span><span class='line'>        <span class="nv">$connect_info</span><span class="o">-&gt;</span><span class="n">attribute</span><span class="p">,</span>
+</span><span class='line'>        <span class="p">{</span>   <span class="n">on_connect_do</span> <span class="o">=&gt;</span> <span class="nv">$create_statements</span><span class="p">,</span>
+</span><span class='line'>            <span class="n">on_disconnect_do</span> <span class="o">=&gt;</span> <span class="nv">$drop_statements</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">_load_engine</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$schema</span> <span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">meta</span><span class="o">-&gt;</span><span class="n">make_mutable</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$engine</span> <span class="o">=</span> <span class="s">&#39;Modware::Loader::Role::Ontology::With&#39;</span>
+</span><span class='line'>        <span class="o">.</span> <span class="nb">ucfirst</span> <span class="nb">lc</span><span class="p">(</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">storage</span><span class="o">-&gt;</span><span class="n">sqlt_type</span> <span class="p">);</span>
+</span><span class='line'>    <span class="n">ensure_all_roles</span><span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$engine</span> <span class="p">);</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">meta</span><span class="o">-&gt;</span><span class="n">make_immutable</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">transform_schema</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>The loader also validates the presence of <strong>cv_property</strong>(<em>_check_cvprop_or_die</em>) ontology,  it is needed to be
+preloaded for any other ontology to be loaded later on.</li>
+<li>The <em>_around_connection</em> method reset the storage connection and add statements for creating and dropping staging tables.</li>
+</ul>
+
+
+<h3>Methods/attributes the backend role needs to implement</h3>
+
+<h4>transform_schema</h4>
+
+<p>  Meant for altering any column name/attributes through the schema object. For example,
+  for oracle backend the <em>synonym</em> column need to be renamed and the column type for all
+  the chado <em>prop</em> tables need to be altered.</p>
+
+<figure class='code'><figcaption><span>schema transformation</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::Role::Ontology::</span><span class="n">WithOracle</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">namespace::</span><span class="n">autoclean</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">Moose::</span><span class="n">Role</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">transform_schema</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$schema</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$source</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="o">-&gt;</span><span class="n">source</span><span class="p">(</span><span class="s">&#39;Cv::Cvtermsynonym&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nv">$source</span><span class="o">-&gt;</span><span class="n">remove_column</span><span class="p">(</span><span class="s">&#39;synonym&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nv">$source</span><span class="o">-&gt;</span><span class="n">add_column</span><span class="p">(</span>
+</span><span class='line'>        <span class="s">&#39;synonym_&#39;</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">data_type</span>   <span class="o">=&gt;</span> <span class="s">&#39;varchar&#39;</span><span class="p">,</span>
+</span><span class='line'>            <span class="n">is_nullable</span> <span class="o">=&gt;</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>            <span class="n">size</span>        <span class="o">=&gt;</span> <span class="mi">1024</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">);</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">@sources</span> <span class="o">=</span> <span class="p">(</span>
+</span><span class='line'>        <span class="s">&#39;Cv::Cvprop&#39;</span><span class="p">,</span>     <span class="s">&#39;Cv::Cvtermprop&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s">&#39;Cv::Dbxrefprop&#39;</span><span class="p">,</span> <span class="s">&#39;Sequence::Featureprop&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s">&#39;Sequence::FeatureCvtermprop&#39;</span>
+</span><span class='line'>    <span class="p">);</span>
+</span><span class='line'>    <span class="k">for</span> <span class="k">my</span> <span class="nv">$name</span> <span class="p">(</span><span class="nv">@sources</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">my</span> <span class="nv">$result_source</span> <span class="o">=</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">source</span><span class="p">(</span><span class="nv">$name</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">next</span> <span class="k">if</span> <span class="o">!</span><span class="nv">$result_source</span><span class="o">-&gt;</span><span class="n">has_column</span><span class="p">(</span><span class="s">&#39;value&#39;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$result_source</span><span class="o">-&gt;</span><span class="n">remove_column</span><span class="p">(</span><span class="s">&#39;value&#39;</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$result_source</span><span class="o">-&gt;</span><span class="n">add_column</span><span class="p">(</span>
+</span><span class='line'>            <span class="s">&#39;value&#39;</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>                <span class="n">data_type</span>   <span class="o">=&gt;</span> <span class="s">&#39;clob&#39;</span><span class="p">,</span>
+</span><span class='line'>                <span class="n">is_nullable</span> <span class="o">=&gt;</span> <span class="mi">1</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>create_temp_statements</h4>
+
+<p>It creates temporary staging tables for holding the data. It expects to return an
+<em>ArrayRef</em> where each element could be a sql statement or a code reference. The create
+statments should at least create the following temporary tables &#8230;.</p>
+
+<ul>
+<li>temp_cvterm</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::Role::Ontology::</span><span class="n">WithSqlite</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">create_temp_statements</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="p">[</span>
+</span><span class='line'>        <span class="sx">qq{</span>
+</span><span class='line'><span class="sx">         CREATE TEMPORARY TABLE temp_cvterm (</span>
+</span><span class='line'><span class="sx">               name varchar(1024) NOT NULL, </span>
+</span><span class='line'><span class="sx">               accession varchar(1024) NOT NULL, </span>
+</span><span class='line'><span class="sx">               is_obsolete integer NOT NULL DEFAULT 0, </span>
+</span><span class='line'><span class="sx">               is_relationshiptype integer NOT NULL DEFAULT 0, </span>
+</span><span class='line'><span class="sx">               definition text, </span>
+</span><span class='line'><span class="sx">            )</span>
+</span><span class='line'><span class="sx">         }</span>
+</span><span class='line'>    <span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<h4>drop_temp_statements</h4>
+
+<p>Similar to <em>create_temp_statments</em> but only to remove the staging tables.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::Role::Ontology::</span><span class="n">WithSqlite</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">drop_temp_statements</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">[</span> <span class="sx">qq{ DROP TABLE temp_cvterm }</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>cache_threshold</h4>
+
+<p>Maximum entries that will be held in memory before it is persisted in the staging tables.</p>
+
+<h4>merge_dbxrefs</h4>
+
+<h4>merge_cvterms</h4>
+
+<h4>merge_comments</h4>
+
+<p><strong>merge_relations</strong></p>
+
+<h3>DBIC result classes for staging tables</h3>
+
+<p>These result classes maps to the staging temporary tables and gets registered with the
+main schema.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::Schema::</span><span class="n">Temporary</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::Schema::Temporary::</span><span class="n">Cvterm</span><span class="s">&#39;;</span>
+</span><span class='line'><span class="s">use strict;</span>
+</span><span class='line'><span class="s">use base qw/DBIx::Class::Core/;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">__PACKAGE__-&gt;table(&#39;</span><span class="n">temp_cvterm</span><span class="s">&#39;);</span>
+</span><span class='line'><span class="s">__PACKAGE__-&gt;add_columns(</span>
+</span><span class='line'><span class="s">    &#39;</span><span class="n">name</span><span class="s">&#39; =&gt; { data_type =&gt; &#39;</span><span class="n">varchar</span><span class="s">&#39;, size =&gt; 1024 } );</span>
+</span><span class='line'><span class="s">__PACKAGE__-&gt;add_columns(</span>
+</span><span class='line'><span class="s">    &#39;</span><span class="n">accession</span><span class="s">&#39; =&gt; { data_type =&gt; &#39;</span><span class="n">varchar</span><span class="s">&#39;, size =&gt; 1024 } );</span>
+</span><span class='line'><span class="s">__PACKAGE__-&gt;add_columns( &#39;</span><span class="n">definition</span><span class="s">&#39; =&gt; { data_type =&gt; &#39;</span><span class="n">text</span><span class="s">&#39; } );</span>
+</span><span class='line'><span class="s">__PACKAGE__-&gt;add_columns( &#39;</span><span class="n">cmmt</span><span class="s">&#39; =&gt; { data_type =&gt; &#39;</span><span class="n">text</span><span class="s">&#39; } );</span>
+</span><span class='line'><span class="s">__PACKAGE__-&gt;add_columns(</span>
+</span><span class='line'><span class="s">    &#39;</span><span class="n">is_relationshiptype</span><span class="s">&#39; =&gt; { data_type =&gt; &#39;</span><span class="nb">int</span><span class="s">&#39;, default =&gt; 0 } );</span>
+</span><span class='line'><span class="s">__PACKAGE__-&gt;add_columns(</span>
+</span><span class='line'><span class="s">    &#39;</span><span class="n">is_obsolete</span><span class="s">&#39; =&gt; { data_type =&gt; &#39;</span><span class="nb">int</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">default</span> <span class="o">=&gt;</span> <span class="mi">0</span> <span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="mi">1</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::</span><span class="n">Ontology</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">Modware::Loader::Schema::</span><span class="n">Temporary</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;schema&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">is</span>      <span class="o">=&gt;</span> <span class="s">&#39;rw&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">isa</span>     <span class="o">=&gt;</span> <span class="s">&#39;Bio::Chado::Schema&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">writer</span>  <span class="o">=&gt;</span> <span class="s">&#39;set_schema&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">trigger</span> <span class="o">=&gt;</span> <span class="k">sub </span><span class="p">{</span>
+</span><span class='line'>        <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_load_engine</span><span class="p">;</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_around_connection</span><span class="p">;</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_check_cvprop_or_die</span><span class="p">;</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_register_schema_classes</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">_register_schema_classes</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$schema</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">;</span>
+</span><span class='line'>  <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">register_class</span><span class="p">(</span><span class="s">&#39;TempCvterm&#39;</span> <span class="o">=&gt;</span> <span class="s">&#39;Modware::Loader::Schema::Temporary::Cvterm&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Ontology metadata/default namespace</h2>
+
+<p>By default,  it will store the ontology namespace,  date and version(if available). The
+loader proceeds only if there is a new version available. However,  the version value in
+<strong>data-version</strong> field is non-uniform which makes it very hard to parse and compare
+uniformly. So,  instead the creation date is used for comparison.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Load::Command::</span><span class="n">bioportalobo2chado</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">execute</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$logger</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">logger</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">#download from bioportal</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$bioportal</span> <span class="o">=</span> <span class="nn">BioPortal::</span><span class="n">WebService</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">(</span> <span class="n">apikey</span> <span class="o">=&gt;</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">apikey</span> <span class="p">);</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$downloader</span> <span class="o">=</span> <span class="nv">$bioportal</span><span class="o">-&gt;</span><span class="n">downlaod</span><span class="p">(</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$downloader</span><span class="o">-&gt;</span><span class="n">is_obo_format</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$logger</span><span class="o">-&gt;</span><span class="n">logcroak</span><span class="p">(</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="p">,</span>  <span class="s">&#39; is not available in OBO format&#39;</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">#parse obo and give it to loader</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$loader</span> <span class="o">=</span> <span class="nn">Modware::Loader::</span><span class="n">Ontology</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">my</span> <span class="nv">$ontology</span> <span class="o">=</span> <span class="nn">OBO::Parser::</span><span class="n">OBOParser</span><span class="o">-&gt;</span><span class="k">new</span><span class="o">-&gt;</span><span class="n">work</span><span class="p">(</span><span class="nv">$downloader</span><span class="o">-&gt;</span><span class="n">filename</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$loader</span><span class="o">-&gt;</span><span class="n">set_ontology</span><span class="p">(</span><span class="nv">$ontology</span><span class="p">);</span>
+</span><span class='line'>  <span class="nv">$loader</span><span class="o">-&gt;</span><span class="n">set_schema</span><span class="p">(</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># check if it is a new version</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="nv">$loader</span><span class="o">-&gt;</span><span class="n">is_ontology_in_db</span><span class="p">())</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$loader</span><span class="o">-&gt;</span><span class="n">is_ontology_new_version</span><span class="p">()</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nv">$logger</span><span class="o">-&gt;</span><span class="n">logcroak</span><span class="p">(</span><span class="s">&quot;This version of ontology already exist in database&quot;</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="nv">$loader</span><span class="o">-&gt;</span><span class="n">store_metadata</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Check line <strong>34</strong> for date comparsion using <strong>DateTime</strong> object.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::</span><span class="n">Ontology</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">DateTime::Format::</span><span class="n">Strptime</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;_date_parser&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>  <span class="n">is</span> <span class="o">=&gt;</span> <span class="s">&#39;ro&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">isa</span> <span class="o">=&gt;</span> <span class="s">&#39;DateTime::Format::Strptime&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">lazy</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">default</span> <span class="o">=&gt;</span> <span class="n">sub</span><span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="nn">DateTime::Format::</span><span class="n">Strptime</span><span class="o">-&gt;</span><span class="k">new</span><span class="p">(</span>
+</span><span class='line'>          <span class="n">pattern</span> <span class="o">=&gt;</span> <span class="s">&#39;%Y-%m-%d&#39;</span><span class="p">,</span>
+</span><span class='line'>          <span class="n">on_error</span> <span class="o">=&gt;</span> <span class="s">&#39;croak&#39;</span>
+</span><span class='line'>      <span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">is_ontology_in_db</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$row</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;Cv::Cv&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="o">-&gt;</span><span class="n">find</span><span class="p">(</span> <span class="p">{</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="o">-&gt;</span><span class="n">default_namespace</span> <span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$row</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">set_cvrow</span><span class="p">(</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="o">-&gt;</span><span class="n">default_namespace</span><span class="p">,</span> <span class="nv">$row</span> <span class="p">);</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nv">$row</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">is_ontology_new_version</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$onto_datetime</span>
+</span><span class='line'>        <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_date_parser</span><span class="o">-&gt;</span><span class="n">parse_datetime</span><span class="p">(</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="o">-&gt;</span><span class="n">date</span> <span class="p">);</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$db_datetime</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_date_parser</span><span class="o">-&gt;</span><span class="n">parse_datetime</span><span class="p">(</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_get_ontology_date_from_db</span> <span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span> <span class="nv">$onto_datetime</span> <span class="o">&gt;</span> <span class="nv">$db_datetime</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nv">$onto_datetime</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">_get_ontology_date_from_db</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$cvrow</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$cvname</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="o">-&gt;</span><span class="n">default_namespace</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">exists_cvrow</span><span class="p">(</span><span class="nv">$cvname</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$cvrow</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">get_cvrow</span><span class="p">(</span><span class="nv">$cvname</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$cvrow</span>
+</span><span class='line'>            <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;Cv::Cv&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">find</span><span class="p">(</span> <span class="p">{</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="nv">$cvname</span> <span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">set_cvrow</span><span class="p">(</span> <span class="nv">$cvname</span><span class="p">,</span> <span class="nv">$cvrow</span> <span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$version_row</span> <span class="o">=</span> <span class="nv">$cvrow</span><span class="o">-&gt;</span><span class="n">search_related</span><span class="p">(</span>
+</span><span class='line'>        <span class="s">&#39;cvprops&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="p">{</span>   <span class="s">&#39;cv.name&#39;</span>   <span class="o">=&gt;</span> <span class="s">&#39;cv_property&#39;</span><span class="p">,</span>
+</span><span class='line'>            <span class="s">&#39;type.name&#39;</span> <span class="o">=&gt;</span> <span class="s">&#39;date&#39;</span>
+</span><span class='line'>        <span class="p">},</span>
+</span><span class='line'>        <span class="p">{</span> <span class="nb">join</span> <span class="o">=&gt;</span> <span class="p">[</span> <span class="p">{</span> <span class="s">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s">&#39;cv&#39;</span> <span class="p">}</span> <span class="p">],</span> <span class="n">rows</span> <span class="o">=&gt;</span> <span class="mi">1</span> <span class="p">}</span>
+</span><span class='line'>    <span class="p">)</span><span class="o">-&gt;</span><span class="n">single</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nv">$version_row</span><span class="o">-&gt;</span><span class="n">value</span> <span class="k">if</span> <span class="nv">$version_row</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It stores four data attributes(metadata) <em>data-version</em>, <em>date</em>, <em>saved-by</em>, <em>remark</em> of
+the ontology.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::</span><span class="n">Ontology</span><span class="p">;</span>
+</span><span class='line'><span class="k">sub </span><span class="nf">store_metadata</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$schema</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$onto</span>   <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$cvrow</span> <span class="o">=</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;Cv::Cv&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="o">-&gt;</span><span class="n">find_or_new</span><span class="p">(</span> <span class="p">{</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="nv">$onto</span><span class="o">-&gt;</span><span class="n">name</span> <span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span> <span class="nv">$cvrow</span><span class="o">-&gt;</span><span class="n">in_storage</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">my</span> <span class="nv">$rs</span> <span class="o">=</span> <span class="nv">$cvrow</span><span class="o">-&gt;</span><span class="n">search_related</span><span class="p">(</span>
+</span><span class='line'>            <span class="s">&#39;cvprops&#39;</span><span class="p">,</span>
+</span><span class='line'>            <span class="p">{</span> <span class="s">&#39;cv.name&#39;</span> <span class="o">=&gt;</span> <span class="s">&#39;cv_property&#39;</span> <span class="p">},</span>
+</span><span class='line'>            <span class="p">{</span> <span class="nb">join</span>      <span class="o">=&gt;</span> <span class="p">[</span> <span class="p">{</span> <span class="s">&#39;type&#39;</span> <span class="o">=&gt;</span> <span class="s">&#39;cv&#39;</span> <span class="p">}</span> <span class="p">]</span> <span class="p">}</span>
+</span><span class='line'>        <span class="p">);</span>
+</span><span class='line'>        <span class="k">for</span> <span class="k">my</span> <span class="nv">$row</span> <span class="p">(</span> <span class="nv">$rs</span><span class="o">-&gt;</span><span class="n">all</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="p">(</span> <span class="k">my</span> <span class="nv">$method</span> <span class="o">=</span> <span class="nv">$row</span><span class="o">-&gt;</span><span class="n">type</span><span class="o">-&gt;</span><span class="n">name</span> <span class="p">)</span> <span class="o">=~</span> <span class="sr">s{-}{_}</span><span class="p">;</span>
+</span><span class='line'>            <span class="nv">$row</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">(</span> <span class="nv">$onto</span><span class="o">-&gt;</span><span class="nv">$method</span> <span class="p">);</span>
+</span><span class='line'>            <span class="nv">$row</span><span class="o">-&gt;</span><span class="n">update</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">my</span> <span class="nv">$data_array</span><span class="p">;</span>
+</span><span class='line'>        <span class="nv">$cvrow</span><span class="o">-&gt;</span><span class="n">insert</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">my</span> <span class="nv">$cvprop_id</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">get_cvrow</span><span class="p">(</span><span class="s">&#39;cv_property&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">cv_id</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">for</span> <span class="k">my</span> <span class="nv">$method</span> <span class="p">(</span> <span class="p">(</span> <span class="s">&#39;date&#39;</span><span class="p">,</span> <span class="s">&#39;data_version&#39;</span><span class="p">,</span> <span class="s">&#39;saved_by&#39;</span><span class="p">,</span> <span class="s">&#39;remark&#39;</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>            <span class="p">(</span> <span class="k">my</span> <span class="nv">$cvterm</span> <span class="o">=</span> <span class="nv">$method</span> <span class="p">)</span> <span class="o">=~</span> <span class="sr">s{_}{-}</span><span class="p">;</span>
+</span><span class='line'>            <span class="nb">push</span> <span class="nv">@$data_array</span><span class="p">,</span>
+</span><span class='line'>                <span class="p">{</span>
+</span><span class='line'>                <span class="n">value</span>   <span class="o">=&gt;</span> <span class="nv">$onto</span><span class="o">-&gt;</span><span class="nv">$method</span><span class="p">,</span>
+</span><span class='line'>                <span class="n">type_id</span> <span class="o">=&gt;</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;Cv::Cvterm&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">find</span><span class="p">(</span>
+</span><span class='line'>                    <span class="p">{</span>   <span class="n">name</span>  <span class="o">=&gt;</span> <span class="nv">$cvterm</span><span class="p">,</span>
+</span><span class='line'>                        <span class="n">cv_id</span> <span class="o">=&gt;</span> <span class="nv">$cvprop_id</span>
+</span><span class='line'>                    <span class="p">}</span>
+</span><span class='line'>                <span class="p">)</span><span class="o">-&gt;</span><span class="n">cvterm_id</span>
+</span><span class='line'>                <span class="p">};</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="nv">$cvrow</span><span class="o">-&gt;</span><span class="n">create_related</span><span class="p">(</span> <span class="s">&#39;cvprops&#39;</span><span class="p">,</span> <span class="nv">$data_array</span> <span class="p">);</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">set_cvrow</span><span class="p">(</span><span class="nv">$cvrow</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="nv">$cvrow</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">with</span> <span class="s">&#39;Modware::Loader::Role::Ontology::WithHelper&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::Role::Ontology::</span><span class="n">WithHelper</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">namespace::</span><span class="n">autoclean</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">Moose::</span><span class="n">Role</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">requires</span> <span class="s">&#39;schema&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;_cvrow&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">is</span>      <span class="o">=&gt;</span> <span class="s">&#39;rw&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">isa</span>     <span class="o">=&gt;</span> <span class="s">&#39;HashRef&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">traits</span>  <span class="o">=&gt;</span> <span class="p">[</span><span class="s">&#39;Hash&#39;</span><span class="p">],</span>
+</span><span class='line'>    <span class="n">default</span> <span class="o">=&gt;</span> <span class="k">sub </span><span class="p">{</span> <span class="p">{}</span> <span class="p">},</span>
+</span><span class='line'>    <span class="n">handles</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">get_cvrow</span>   <span class="o">=&gt;</span> <span class="s">&#39;get&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">set_cvrow</span>   <span class="o">=&gt;</span> <span class="s">&#39;set&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">exist_cvrow</span> <span class="o">=&gt;</span> <span class="s">&#39;defined&#39;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create namespaces</h2>
+
+<p>Here,  more or less some of the namespaces will be shared and might have been created
+during other ontology loading,  so this step will go on with <em>find_or_create</em> mode.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Load::Command::</span><span class="n">bioportalobo2chado</span><span class="p">;</span>
+</span><span class='line'><span class="k">sub </span><span class="nf">execute</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>   <span class="o">...........</span>
+</span><span class='line'>  <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">find_or_create_namespaces</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Its going to create(or find) for various components and in each step cache them for later
+use.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::</span><span class="n">Ontology</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">find_or_create_namespaces</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">find_or_create_dbrow</span><span class="p">(</span><span class="s">&#39;internal&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">find_or_create_cvrow</span><span class="p">(</span><span class="nv">$_</span><span class="p">)</span> <span class="k">for</span> <span class="sx">qw/cvterm_property_type synonym_type/</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">find_or_create_cvterm_namespace</span><span class="p">(</span><span class="nv">$_</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">for</span>
+</span><span class='line'>        <span class="sx">qw/comment alt_id xref cyclic reflexive transitive anonymous domain range/</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">find_or_create_cvterm_namespace</span><span class="p">(</span> <span class="nv">$_</span><span class="p">,</span> <span class="s">&#39;synonym_type&#39;</span> <span class="p">)</span>
+</span><span class='line'>        <span class="k">for</span> <span class="sx">qw/EXACT BROAD NARROW RELATED/</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <strong>Helper</strong> role gets <em>dbrow</em> and <em>cvterm_row</em> attributes for caching and
+bunch of helper methods.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::Role::Ontology::</span><span class="n">WithHelper</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;_cvterm_row&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">is</span>        <span class="o">=&gt;</span> <span class="s">&#39;rw&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">isa</span>       <span class="o">=&gt;</span> <span class="s">&#39;HashRef&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">traits</span>    <span class="o">=&gt;</span> <span class="p">[</span><span class="s">&#39;Hash&#39;</span><span class="p">],</span>
+</span><span class='line'>    <span class="n">predicate</span> <span class="o">=&gt;</span> <span class="s">&#39;has_cvterm_row&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">default</span>   <span class="o">=&gt;</span> <span class="k">sub </span><span class="p">{</span> <span class="p">{}</span> <span class="p">},</span>
+</span><span class='line'>    <span class="n">handles</span>   <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">get_cvterm_row</span>   <span class="o">=&gt;</span> <span class="s">&#39;get&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">set_cvterm_row</span>   <span class="o">=&gt;</span> <span class="s">&#39;set&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">exist_cvterm_row</span> <span class="o">=&gt;</span> <span class="s">&#39;defined&#39;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">has</span> <span class="s">&#39;_dbrow&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span>
+</span><span class='line'>    <span class="n">is</span>      <span class="o">=&gt;</span> <span class="s">&#39;rw&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">isa</span>     <span class="o">=&gt;</span> <span class="s">&#39;HashRef&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">traits</span>  <span class="o">=&gt;</span> <span class="p">[</span><span class="sx">qw/Hash/</span><span class="p">],</span>
+</span><span class='line'>    <span class="n">default</span> <span class="o">=&gt;</span> <span class="k">sub </span><span class="p">{</span> <span class="p">{}</span> <span class="p">},</span>
+</span><span class='line'>    <span class="n">handles</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">add_dbrow</span>    <span class="o">=&gt;</span> <span class="s">&#39;set&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">get_dbrow</span>    <span class="o">=&gt;</span> <span class="s">&#39;get&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">delete_dbrow</span> <span class="o">=&gt;</span> <span class="s">&#39;delete&#39;</span><span class="p">,</span>
+</span><span class='line'>        <span class="n">has_dbrow</span>    <span class="o">=&gt;</span> <span class="s">&#39;defined&#39;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">find_or_create_dbrow</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$db</span> <span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$schema</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$dbrow</span>  <span class="o">=</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;General::Db&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="o">-&gt;</span><span class="n">find_or_create</span><span class="p">(</span> <span class="p">{</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="nv">$db</span> <span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">set_dbrow</span><span class="p">(</span> <span class="nv">$db</span><span class="p">,</span> <span class="nv">$dbrow</span> <span class="p">)</span> <span class="k">if</span> <span class="o">!</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">has_dbrow</span><span class="p">(</span><span class="nv">$db</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nv">$dbrow</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">find_or_create_cvrow</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$cv</span> <span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$schema</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$cvrow</span>
+</span><span class='line'>        <span class="o">=</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;Cv::Cv&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">find_or_create</span><span class="p">(</span> <span class="p">{</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="nv">$cv</span> <span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">set_cvrow</span><span class="p">(</span> <span class="nv">$cv</span><span class="p">,</span> <span class="nv">$cvrow</span> <span class="p">)</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">!</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">has_cvrow</span><span class="p">(</span><span class="nv">$cv</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nv">$cvrow</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">find_or_create_cvterm_namespace</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">,</span> <span class="nv">$cvterm</span><span class="p">,</span> <span class="nv">$cv</span><span class="p">,</span> <span class="nv">$db</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$cv</span>  <span class="o">||=</span> <span class="s">&#39;cvterm_property_type&#39;</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$db</span>  <span class="o">||=</span> <span class="s">&#39;internal&#39;</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$schema</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$cvterm_row</span>
+</span><span class='line'>        <span class="o">=</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;Cv::Cvterm&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">find</span><span class="p">(</span> <span class="p">{</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="nv">$cvterm</span> <span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$cvterm_row</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">set_cvterm_row</span><span class="p">(</span> <span class="nv">$cvterm</span><span class="p">,</span> <span class="nv">$cvterm_row</span> <span class="p">)</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">!</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">has_cvterm_row</span><span class="p">(</span><span class="nv">$cvterm</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">my</span> <span class="nv">$dbxref_row</span>
+</span><span class='line'>            <span class="o">=</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;General::Dbxref&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">find_or_create</span><span class="p">(</span>
+</span><span class='line'>            <span class="p">{</span>   <span class="n">accession</span> <span class="o">=&gt;</span> <span class="nv">$cvterm</span><span class="p">,</span>
+</span><span class='line'>                <span class="n">db_id</span>     <span class="o">=&gt;</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">get_dbrow</span><span class="p">(</span><span class="nv">$db</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">db_id</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>            <span class="p">);</span>
+</span><span class='line'>        <span class="nv">$cvterm_row</span> <span class="o">=</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;Cv::Cvterm&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">create</span><span class="p">(</span>
+</span><span class='line'>            <span class="p">{</span>   <span class="n">name</span>      <span class="o">=&gt;</span> <span class="nv">$cvterm</span><span class="p">,</span>
+</span><span class='line'>                <span class="n">cv_id</span>     <span class="o">=&gt;</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">get_cvrow</span><span class="p">(</span><span class="nv">$cv</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">cv_id</span><span class="p">,</span>
+</span><span class='line'>                <span class="n">dbxref_id</span> <span class="o">=&gt;</span> <span class="nv">$dbxref_row</span><span class="o">-&gt;</span><span class="n">dbxref_id</span>
+</span><span class='line'>            <span class="p">}</span>
+</span><span class='line'>        <span class="p">);</span>
+</span><span class='line'>        <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">set_cvterm_row</span><span class="p">(</span><span class="nv">$cvterm</span><span class="p">,</span> <span class="nv">$cvterm_row</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nv">$cvterm_row</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Load data in staging temporary tables</h2>
+
+<p>Overall,  the loader prepares <em>perl data hashes</em> suitable for insertion and loads them in
+various staging temp tables. The entire process is wrapped around <em>prepare_data_for
+loading</em> method.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::</span><span class="n">Ontology</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">prepare_data_for_loading</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$onto</span>   <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">ontology</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$cv_id</span>  <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">get_cvrow</span><span class="p">(</span> <span class="nv">$onto</span><span class="o">-&gt;</span><span class="n">default_namespace</span> <span class="p">)</span><span class="o">-&gt;</span><span class="n">cv_id</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$insert_array</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">for</span> <span class="k">my</span> <span class="nv">$term</span> <span class="p">(</span> <span class="nv">@</span><span class="p">{</span> <span class="nv">$onto</span><span class="o">-&gt;</span><span class="n">get_relationship_types</span><span class="p">,</span> <span class="nv">$onto</span><span class="o">-&gt;</span><span class="n">get_terms</span> <span class="p">}</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">my</span> <span class="nv">$insert_hash</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">_get_insert_term_hash</span><span class="p">(</span><span class="nv">$term</span><span class="p">);</span>
+</span><span class='line'>        <span class="nv">$insert_hash</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">cv_id</span><span class="p">}</span> <span class="o">=</span> <span class="nv">$cv_id</span><span class="p">;</span>
+</span><span class='line'>        <span class="nb">push</span> <span class="nv">@$insert_array</span><span class="p">,</span> <span class="nv">$insert_hash</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$schema</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;TempCvterm&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">populate</span><span class="p">(</span><span class="nv">$insert_array</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">cvterms_in_staging</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span><span class="nv">$self</span><span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;TempCvterm&#39;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">(</span> <span class="p">{}</span> <span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">_get_insert_term_hash</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$term</span> <span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span> <span class="nv">$db_id</span><span class="p">,</span> <span class="nv">$accession</span> <span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">has_idspace</span><span class="p">(</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">id</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">my</span> <span class="nv">@parsed</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">parse_id</span><span class="p">(</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">id</span> <span class="p">);</span>
+</span><span class='line'>        <span class="nv">$db_id</span>     <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">find_or_create_db_id</span><span class="p">(</span> <span class="nv">$parsed</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">);</span>
+</span><span class='line'>        <span class="nv">$accession</span> <span class="o">=</span> <span class="nv">$parsed</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$db_id</span>     <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">find_or_create_db_id</span><span class="p">(</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">cv_namespace</span><span class="o">-&gt;</span><span class="n">name</span> <span class="p">);</span>
+</span><span class='line'>        <span class="nv">$accession</span> <span class="o">=</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">id</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$insert_hash</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$insert_hash</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">accession</span><span class="p">}</span>  <span class="o">=</span> <span class="nv">$accession</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$insert_hash</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">db_id</span><span class="p">}</span>      <span class="o">=</span> <span class="nv">$db_id</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$insert_hash</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">definition</span><span class="p">}</span> <span class="o">=</span> <span class="n">encode</span><span class="p">(</span> <span class="s">&quot;UTF-8&quot;</span><span class="p">,</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">def</span><span class="o">-&gt;</span><span class="n">text</span> <span class="p">)</span>
+</span><span class='line'>        <span class="k">if</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">def</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$insert_hash</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">is_relationshiptype</span><span class="p">}</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'>        <span class="k">if</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">isa</span><span class="p">(</span><span class="s">&#39;OBO::Core::RelationshipType&#39;</span><span class="p">);</span>
+</span><span class='line'>    <span class="nv">$insert_hash</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">is_obsolete</span><span class="p">}</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">is_obsolete</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$insert_hash</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">name</span><span class="p">}</span> <span class="o">=</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">name</span> <span class="p">?</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">name</span> <span class="p">:</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">id</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$insert_hash</span><span class="o">-&gt;</span><span class="p">{</span><span class="n">comment</span><span class="p">}</span> <span class="o">=</span> <span class="nv">$term</span><span class="o">-&gt;</span><span class="n">comment</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nv">$insert_hash</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <strong>Helper</strong> module also gets few methods to reuse</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Loader::Role::Ontology::</span><span class="n">WithHelper</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">has_idspace</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$id</span> <span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="nv">$id</span> <span class="o">=~</span><span class="sr"> /:/</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">parse_id</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$id</span> <span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nb">split</span> <span class="sr">/:/</span><span class="p">,</span> <span class="nv">$id</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">find_or_create_db_id</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">my</span> <span class="p">(</span> <span class="nv">$self</span><span class="p">,</span> <span class="nv">$name</span> <span class="p">)</span> <span class="o">=</span> <span class="nv">@_</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">has_dbrow</span><span class="p">(</span><span class="nv">$name</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">get_dbrow</span><span class="p">(</span><span class="nv">$name</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">db_id</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$schema</span> <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">my</span> <span class="nv">$row</span>    <span class="o">=</span> <span class="nv">$schema</span><span class="o">-&gt;</span><span class="n">resultset</span><span class="p">(</span><span class="s">&#39;General::Db&#39;</span><span class="p">)</span>
+</span><span class='line'>        <span class="o">-&gt;</span><span class="n">find_or_create</span><span class="p">(</span> <span class="p">{</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="nv">$name</span> <span class="p">}</span> <span class="p">);</span>
+</span><span class='line'>    <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">set_dbrow</span><span class="p">(</span> <span class="nv">$name</span><span class="p">,</span> <span class="nv">$row</span> <span class="p">);</span>
+</span><span class='line'>    <span class="nv">$row</span><span class="o">-&gt;</span><span class="n">db_id</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And finally you call it from main application and load them in a separte transaction</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="nn">Modware::Load::Command::</span><span class="n">bioportalobo2chado</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">sub </span><span class="nf">execute</span> <span class="p">{</span>
+</span><span class='line'><span class="o">....</span>
+</span><span class='line'>    <span class="c1">#transaction for loading in staging temp tables</span>
+</span><span class='line'>    <span class="nv">$guard</span>  <span class="o">=</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">schema</span><span class="o">-&gt;</span><span class="n">txn_scope_guard</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$loader</span><span class="o">-&gt;</span><span class="n">prepare_data_for_loading</span><span class="p">;</span>
+</span><span class='line'>    <span class="nv">$guard</span><span class="o">-&gt;</span><span class="n">commit</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nv">$logger</span><span class="o">-&gt;</span><span class="n">info</span><span class="p">(</span><span class="n">loader</span><span class="o">-&gt;</span><span class="n">cvterms_in_staging</span><span class="p">,</span>  <span class="s">&quot; terms in temp table&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+  
+    <footer>
+      <p class="meta">
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-11-27T13:18:00-06:00" pubdate data-updated="true">Nov 27<span>th</span>, 2012</time>
+        
+      </p>
+      
+        <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/obo-loader/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/obo-loader/index.html" >Tweet</a>
+  
+  
+  
+</div>
+
+      
+    </footer>
+  
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About </h1>
+  <p>Unofficial blog of dictybase MOD(model organism database) developers.
+  		<br/><a href="/about">More ....</a>
+  </p>
+</section>
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("dictybase", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/dictybase" class="twitter-follow-button" data-show-count="false">Follow @dictybase</a>
+  
+</section>
+
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/dictybase">@dictybase</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'dictybase',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - dictyBase Developers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+     <script type="text/javascript">
+          jQuery(document).ready(function() {
+              // Put a TOC right before the entry content.
+              generateTOC('article',  'Table of Contents');
+        });
+     </script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Sequence ontology | dictyBase Developers]]></title>
+  <link href="http://dictyBase.github.com/blog/categories/sequence-ontology/atom.xml" rel="self"/>
+  <link href="http://dictyBase.github.com/"/>
+  <updated>2013-03-07T15:08:20-06:00</updated>
+  <id>http://dictyBase.github.com/</id>
+  <author>
+    <name><![CDATA[dictyBase Developers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Taming the dictybase GFF3]]></title>
+    <link href="http://dictyBase.github.com/blog/2012/05/28/taming-the-gff3/"/>
+    <updated>2012-05-28T08:15:00-05:00</updated>
+    <id>http://dictyBase.github.com/blog/2012/05/28/taming-the-gff3</id>
+    <content type="html"><![CDATA[<p>dictyBase <a href="http://dictybase.org/download/gff3/dicty_gff3.zip">GFF3</a> has developed
+bunch of rough edges over the years and so do not plays well with third
+party tools. Here are the issues that we are aware of...</p>
+
+<h2>Known Issues</h2>
+
+<ul>
+<li>Genes with multiple gene models could easily be confused as splice isoforms. It is
+particularly hard to separate in case of known
+<a href="http://dictybase.org/Downloads/alternative_transcripts.html">isoforms</a>. There is also
+no easy way to identify the primary gene models.</li>
+</ul>
+
+
+<!-- more -->
+
+
+<ul>
+<li><p>Pseudogenes are not represented with proper
+<a href="http://www.sequenceontology.org/resources/intro.html">SO</a> terms. The pseudogenes used
+<strong>gene</strong> SO term whereas the transcript is represented by <strong>pseudogene</strong> term.</p></li>
+<li><p>More than handful of assembly gap coordinates falls outside the range of reference
+feature.</p></li>
+<li><p>CDS features do not have a value for phase column,  which is required in GFF3
+specification.</p></li>
+<li><p>Missing target attribute of EST features. This is becasue the aligned coordinates of EST
+  sequences are not present in our chado database,  probably left out during the
+  loading process.</p></li>
+</ul>
+
+
+<h2>Possible solutions</h2>
+
+<ul>
+<li><p>The gene models will be split into individual GFF3 file for canonical, non-coding, curated and predicted gene models.
+The reason for separation is that each gene model has its own customized data model
+particularly the way transcripts are represented. As a result,  they have to be treated
+and exported separately.</p></li>
+<li><p>The canonical will be the core GFF3 with all the chromosomes, contigs and genomic sequences.
+The rest of them (curated and predicted) will be supplemental and will contain only gene
+structures,  no sequences and assembly features though. By default,  all
+chromosomal features will be kept in a single file.</p></li>
+<li><p>The pseudogene gene model will be fixed, the transcript will be
+  <strong>psuedogenic_transcript</strong> whereas the exons will be <strong>psuedogenic_exon</strong>.</p></li>
+<li><p>No more export of <strong>gap</strong> features at this point.</p></li>
+<li><p>CDS features will not be exported at this point,  would be included at a later point
+  along with the phase column.</p></li>
+<li><p>Rerun the EST pipeline and load alignments with EST sequence locations. It will ensure
+  the presence of <strong>Target</strong> attribute. It will be available as separate alignment
+  GFF3 file. However,  until the rerun is finished the existing alignment GFF3 will be
+  without the <strong>Target</strong> attribute.</p></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

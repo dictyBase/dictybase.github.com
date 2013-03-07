@@ -1,0 +1,611 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Exporting D.discoideum annotations in GFF3 format - dictyBase Developers</title>
+  <meta name="author" content="dictyBase Developers">
+
+  
+  <meta name="description" content="Prerequisites Install modware loader from github.
+With a latest cpanm (>1.6), it can be
+also directly installed from github 1
+$_&gt; cpanm git:// &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://dictyBase.github.com/blog/2013/03/06/exporting-discoideum-annotations/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  // Revert jQuery's '$' alias,  to avoid clashes with ender.js. NOTE: Use
+    // jQuery(...),  instead of $(...) from here on.
+      jQuery.noConflict();
+</script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript"></script>
+<script src="/javascripts/generate-toc.js" type="text/javascript"></script>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">dictyBase Developers</a></h1>
+  
+    <h2>Solving one problem at a time</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:dictyBase.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/pages.html">Pages</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Exporting D.discoideum Annotations in GFF3 Format</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-06T14:55:00-06:00" pubdate data-updated="true">Mar 6<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>Prerequisites</h2>
+
+<p><a href="https://github.com/dictyBase/Modware-Loader/blob/develop/README.md#installation">Install</a> modware loader from github.
+With a latest <a href="https://metacpan.org/release/App-cpanminus">cpanm</a> (>1.6), it can be
+also directly installed from github</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$_&gt; cpanm git://github.com/dictyBase/Modware-Loader.git@release</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then follow the basic <a href="/install-modware-loader">introduction</a> about using
+<strong>Modware-Loader</strong>.</p>
+
+<h2>Export genome annotations</h2>
+
+<p>As mentioned <a href="/blog/2012/05/28/taming-the-gff3">before</a>, annotations are exported in pieces.
+First  gene models(canonical, non-coding, curated and predicated),  then alignments
+and promoters. Exports are done by the <strong>export</strong> subcommand of Modware-Loader.</p>
+
+<figure class='code'><figcaption><span>&#8216;modware-export subcommands&#8217;  (modware-export-commands.txt)</span> <a href='/downloads/code/modware-export-commands.txt'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export <span class="nb">help</span>
+</span><span class='line'>
+</span><span class='line'>Available commands:
+</span><span class='line'>
+</span><span class='line'>                       commands: list the application<span class="s1">&#39;s commands</span>
+</span><span class='line'><span class="s1">                           help: display a command&#39;</span>s <span class="nb">help </span>screen
+</span><span class='line'>
+</span><span class='line'>            chado2alignmentgff3:  Export alignment from chado database in GFF3 format
+</span><span class='line'>            chado2canonicalgff3:  Export canonical gene models from chado database in GFF3 format
+</span><span class='line'>       chado2dictycanonicalgff3: Export GFF3 with canonical gene models of Dictyostelium discoideum
+</span><span class='line'>         chado2dictycuratedgff3: Export GFF3 with curated gene models of Dictyostelium discoideum
+</span><span class='line'>    chado2dictynoncanonicalgff3: Export GFF3 with sequencing center gene models of Dictyostelium discoideum
+</span><span class='line'>  chado2dictynoncanonicalv2gff3:  Export GFF3 with repredicted gene models of Dictyostelium discoideum
+</span><span class='line'>       chado2dictynoncodinggff3: Export GFF3 with non coding gene models of Dictyostelium discoideum
+</span><span class='line'>                    chado2fasta: Export fasta sequence file from chado database
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Common config file</h3>
+
+<p>A basic yaml config file to be used for all the exports.</p>
+
+<figure class='code'><figcaption><span>&#8216;gff3.yaml&#8217;</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">dsn</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">dbi:Oracle:database</span>
+</span><span class='line'><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">username</span>
+</span><span class='line'><span class="l-Scalar-Plain">password</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">password</span>
+</span><span class='line'><span class="l-Scalar-Plain">feature_name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<!-- more -->
+
+
+<p>All exports are done with <strong>&#8211;feature_name</strong> options that exports the <strong>name</strong> of
+reference feature in GFF3 column 1.</p>
+
+<h3>Canonical</h3>
+
+<figure class='code'><figcaption><span>&#8216;subcommand to export canonical gff3&#8217;  (modware-export-canonical.txt)</span> <a href='/downloads/code/modware-export-canonical.txt'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2dictycanonicalgff3 <span class="o">[</span>-?chlopu<span class="o">]</span> <span class="o">[</span>long options...<span class="o">]</span>
+</span><span class='line'>  -h -? --usage --help   Prints this usage information.
+</span><span class='line'>  --reference_id         reference feature name/ID/accession number. In
+</span><span class='line'>                         this <span class="k">case</span>,  only all of its associated
+</span><span class='line'>                         features will be dumped
+</span><span class='line'>  -o --output            Name of the output file,  <span class="k">if </span>absent writes to
+</span><span class='line'>                         STDOUT
+</span><span class='line'>  --write_sequence       To write the fasta sequence<span class="o">(</span>s<span class="o">)</span> of reference
+</span><span class='line'>                         feature<span class="o">(</span>s<span class="o">)</span>,  default is <span class="nb">true</span>
+</span><span class='line'>  --attr --attribute     Additional database attribute
+</span><span class='line'>  --pass -p --password   database password
+</span><span class='line'>  --feature_name         Output feature name instead of sequence id in
+</span><span class='line'>                         the seq_id field,  default is off.
+</span><span class='line'>  --dsn                  database DSN
+</span><span class='line'>  --schema_debug         Output SQL statements that are executed,
+</span><span class='line'>                         default to <span class="nb">false</span>
+</span><span class='line'>  -u --user              database user
+</span><span class='line'>  --log_level            Log level of the logger,  default is error
+</span><span class='line'>  -l --logfile           Name of logfile,  default goes to STDERR
+</span><span class='line'>  -c --configfile        yaml config file to specify all <span class="nb">command </span>line
+</span><span class='line'>                         options
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It exports complete coding gene models along with contig and reference features. It could
+be either of <strong>curated</strong> or <strong>predicted</strong>(sequencing center) gene models where <strong>curated</strong>
+models take precedence.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export  chado2dictycanonicalgff3 -c gff3.yaml  -o canonical.gff3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To dump only a particular chromosome(reference feature) pass either a name or id in the <strong>&#8211;reference_id</strong>
+option.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export  chado2dictycanonicalgff3 -c gff3.yaml  --reference_id 6 -o canonical6.gff3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Non-coding</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export  chado2dictynoncodinggff3 -c gff3.yaml -o data/noncoding.gff3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Non-canonical</h3>
+
+<p>There will be three exports,  one for curated,  one for sequencing center and one for
+reprediction pipeline.</p>
+
+<figure class='code'><figcaption><span>&#8216;subcommand to export sequencing center gene models&#8217;  (modware-export-noncanonical.txt)</span> <a href='/downloads/code/modware-export-noncanonical.txt'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2dictynoncanonicalgff3 <span class="o">[</span>-?chlopu<span class="o">]</span> <span class="o">[</span>long options...<span class="o">]</span>
+</span><span class='line'>  -h -? --usage --help        Prints this usage information.
+</span><span class='line'>  --reference_id              reference feature name/ID/accession
+</span><span class='line'>                              number. In this <span class="k">case</span>,  only all of its
+</span><span class='line'>                              associated features will be dumped
+</span><span class='line'>  -o --output                 Name of the output file,  <span class="k">if </span>absent
+</span><span class='line'>                              writes to STDOUT
+</span><span class='line'>  --attr --attribute          Additional database attribute
+</span><span class='line'>  --feature_name              Output feature name instead of sequence
+</span><span class='line'>                              id in the seq_id field,  default is off.
+</span><span class='line'>  --pass -p --password        database password
+</span><span class='line'>  --write_sequence_region     write sequence region header in GFF3
+</span><span class='line'>                              output,  default <span class="k">if </span>off
+</span><span class='line'>  --source                    Name of database/piece of
+</span><span class='line'>                              software/algorithm that generated the
+</span><span class='line'>                              gene models. By default it is *Sequencing
+</span><span class='line'>                              Center*.
+</span><span class='line'>  --dsn                       database DSN
+</span><span class='line'>  --schema_debug              Output SQL statements that are executed,
+</span><span class='line'>                              default to <span class="nb">false</span>
+</span><span class='line'>  -u --user                   database user
+</span><span class='line'>  --log_level                 Log level of the logger,  default is error
+</span><span class='line'>  -l --logfile                Name of logfile,  default goes to STDERR
+</span><span class='line'>  -c --configfile             yaml config file to specify all <span class="nb">command</span>
+</span><span class='line'><span class="nb">                             </span>line options
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Though,  we use different <em>subcommands</em> theirs options are identical.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2dictynoncanonicalgff3  -c gff3.yaml -o data/noncanonical_seq_center.gff3
+</span><span class='line'><span class="nv">$_</span>&gt; modware-export chado2dictynoncanonicalv2gff3  -c gff3.yaml <span class="se">\ </span>
+</span><span class='line'>             -o data/noncanonical_norepred.gff3
+</span><span class='line'><span class="nv">$_</span>&gt; modware-export chado2dictycuratedgff3 -c config/dicty_gff3.yaml -o data/curated.gff3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Alignment</h3>
+
+<p>EST and couple of alignments from GenBank datasets.</p>
+
+<figure class='code'><figcaption><span>&#8216;subcommand to export alignment&#8217;  (modware-export-alignment.txt)</span> <a href='/downloads/code/modware-export-alignment.txt'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2alignmentgff3 <span class="o">[</span>-?chlopu<span class="o">]</span> <span class="o">[</span>long options...<span class="o">]</span>
+</span><span class='line'>  --write_sequence_region     write sequence region header in GFF3
+</span><span class='line'>                              output,  default <span class="k">if </span>off
+</span><span class='line'>  -h -? --usage --help        Prints this usage information.
+</span><span class='line'>  --feature_name              Output feature name instead of sequence
+</span><span class='line'>                              id in the seq_id field,  default is off.
+</span><span class='line'>  --rt --reference_type       The SO <span class="nb">type </span>of reference feature,
+</span><span class='line'>                              default is supercontig
+</span><span class='line'>  -o --output                 Name of the output file,  <span class="k">if </span>absent
+</span><span class='line'>                              writes to STDOUT
+</span><span class='line'>  --feature_type              SO <span class="nb">type </span>of alignment features to be
+</span><span class='line'>                              exported
+</span><span class='line'>  --attr --attribute          Additional database attribute
+</span><span class='line'>  --match_type                SO <span class="nb">type </span>of alignment feature that will be
+</span><span class='line'>                              exported in GFF3, *_match* is appended to
+</span><span class='line'>                              the feature_type by default.
+</span><span class='line'>  --pass -p --password        database password
+</span><span class='line'>  --force_name                Adds the value of GFF3 *ID* attribute to
+</span><span class='line'>                              *Name* attribute<span class="o">(</span><span class="k">if </span>absent<span class="o">)</span>,  off by
+</span><span class='line'>                              default
+</span><span class='line'>  --add_description           If present,  add the GFF3 *Note*
+</span><span class='line'>                              attribute. It looks <span class="k">for </span>a feature
+</span><span class='line'>                              property with *description* cvterm. Off
+</span><span class='line'>                              by default
+</span><span class='line'>  --dsn                       database DSN
+</span><span class='line'>  --property                  List of additional cvterms which will be
+</span><span class='line'>                              used to extract additional feature
+</span><span class='line'>                              properties
+</span><span class='line'>  --schema_debug              Output SQL statements that are executed,
+</span><span class='line'>                              default to <span class="nb">false</span>
+</span><span class='line'>  -u --user                   database user
+</span><span class='line'>  --log_level                 Log level of the logger,  default is error
+</span><span class='line'>  -l --logfile                Name of logfile,  default goes to STDERR
+</span><span class='line'>  --species                   Name of species
+</span><span class='line'>  --genus                     Name of the genus
+</span><span class='line'>  -c --configfile             yaml config file to specify all <span class="nb">command</span>
+</span><span class='line'><span class="nb">                             </span>line options
+</span><span class='line'>  --org --organism            Common name of the organism whose genomic
+</span><span class='line'>                              features will be exported
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2alignmentgff3 -c gff3.yaml --org dicty <span class="se">\</span>
+</span><span class='line'>      --reference_type chromosome  --feature_type EST -o data/EST.gff3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2alignmentgff3 -c gff3.yaml --org dicty <span class="se">\ </span>
+</span><span class='line'>     --reference_type chromosome  --feature_type cDNA_clone -o data/cDNA_clone.gff3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/cDNA_clone.gff3<span class="se">\ </span>
+</span><span class='line'>     --reference_type chromosome  --feature_type databank_entry <span class="se">\</span>
+</span><span class='line'>     --match_type nucleotide_match
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Misc</h3>
+
+<p>And ultimately some promoter features ..</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/promoter.gff3 <span class="se">\ </span>
+</span><span class='line'>    --reference_type chromosome --feature_type promoter --match_type promoter
+</span><span class='line'>    --org dicty   --force_name 1 --add_description 1 --property <span class="s1">&#39;details_url&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Siddhartha Basu</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-06T14:55:00-06:00" pubdate data-updated="true">Mar 6<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/annotation/'>Annotation</a>, <a class='category' href='/blog/categories/gff3/'>GFF3</a>, <a class='category' href='/blog/categories/genome/'>Genome</a>, <a class='category' href='/blog/categories/modware-loader/'>Modware-Loader</a>, <a class='category' href='/blog/categories/perl/'>Perl</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/blog/2013/03/06/exporting-discoideum-annotations/" data-via="dictybase" data-counturl="http://dictyBase.github.com/blog/2013/03/06/exporting-discoideum-annotations/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/05/28/taming-the-gff3/" title="Previous Post: Taming the dictybase GFF3">&laquo; Taming the dictybase GFF3</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About </h1>
+  <p>Unofficial blog of dictybase MOD(model organism database) developers.
+  		<br/><a href="/about">More ....</a>
+  </p>
+</section>
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("dictybase", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/dictybase" class="twitter-follow-button" data-show-count="false">Follow @dictybase</a>
+  
+</section>
+
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/dictybase">@dictybase</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'dictybase',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - dictyBase Developers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+
+
+</body>
+</html>

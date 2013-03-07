@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Ontology data model in chado database - dictyBase Developers</title>
+  <meta name="author" content="dictyBase Developers">
+
+  
+  <meta name="description" content="Ontology Data Model in Chado Database Nov 16th, 2012 Chado database is driven by ontology(Controlled vocabulary) and it is very important,
+core and &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://dictyBase.github.com/obo-loading/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  // Revert jQuery's '$' alias,  to avoid clashes with ender.js. NOTE: Use
+    // jQuery(...),  instead of $(...) from here on.
+      jQuery.noConflict();
+</script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript"></script>
+<script src="/javascripts/generate-toc.js" type="text/javascript"></script>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">dictyBase Developers</a></h1>
+  
+    <h2>Solving one problem at a time</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:dictyBase.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/pages.html">Pages</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article role="article">
+  
+  <header>
+    <h1 class="entry-title">Ontology Data Model in Chado Database</h1>
+    <p class="meta">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-11-16T10:14:00-06:00" pubdate data-updated="true">Nov 16<span>th</span>, 2012</time></p>
+  </header>
+  
+  <p>Chado database is driven by ontology(Controlled vocabulary)  and it is very important,
+core and somewhat complicated to model it properly. And like any other data model,  it is
+better to break down the steps and approach it in step by step. The various parts of the
+model are desribed in piece by piece in their dependent order in which the first one need to be
+done first and so on.</p>
+
+<h2>Ontology information and namespace</h2>
+
+<p><img src="/images/cvproperty.jpg"></p>
+
+<p>The ontology namespace gets in the <strong>name</strong> column and the version and date values goes in
+the <strong>value</strong> column of <strong>cvprop</strong> table. Following the standard pattern in chado model,
+each value also gets qualified with an <strong>ontology terms</strong> from <strong>cvprop ontology</strong>. The
+<strong>cvprop</strong> ontology has to be stored first in order for any other ontology to store any of
+their ontology properties.</p>
+
+<figure class='code'><figcaption><span>model for ontology properties</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">cv</span><span class="p">.</span><span class="n">name</span><span class="p">,</span><span class="n">cvprop</span><span class="p">.</span><span class="n">value</span> <span class="k">FROM</span> <span class="n">cv</span>
+</span><span class='line'> <span class="k">JOIN</span> <span class="n">cvprop</span> <span class="k">ON</span> <span class="n">cv</span><span class="p">.</span><span class="n">cv_id</span><span class="o">=</span><span class="n">cvprop</span><span class="p">.</span><span class="n">cv_id</span>
+</span><span class='line'> <span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">propterm</span> <span class="k">ON</span> <span class="n">propterm</span><span class="p">.</span><span class="n">type_id</span><span class="o">=</span><span class="n">proptype</span><span class="p">.</span><span class="n">cvterm_id</span>
+</span><span class='line'> <span class="k">JOIN</span> <span class="n">cv</span> <span class="n">proptype</span> <span class="k">ON</span> <span class="n">proptype</span><span class="p">.</span><span class="n">cv_id</span><span class="o">=</span><span class="n">propterm</span><span class="p">.</span><span class="n">cvterm_id</span>
+</span><span class='line'> <span class="k">WHERE</span> <span class="n">proptype</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;cvprop&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Miscellaneous namespaces</h2>
+
+<p>This is a one time setup and reused to hold various properties of <strong>ontology
+term(cvterm)</strong> such as comment, alternate ids,  database cross references(xrefs) etc.</p>
+
+<h3>internal</h3>
+
+<p>Namespace in db table,  stored in name column,  used in case of dbxrefs
+without any defined namespace</p>
+
+<h3>comment</h3>
+
+<p>This is a cvterm namespace to store comment for every cvterm.For this,   a <strong>comment</strong> cvterm is created under <strong>cvterm_property_type</strong> namespace inside
+the <strong>internal</strong> db namespace. Quite naturally,  it is stored identically to the model of a
+cvterm(ontology term, details given below).</p>
+
+<p><img src="/images/comment_namespace.jpg"></p>
+
+<h3>synonym</h3>
+
+<p>For this,  a cv namespace <strong>synonym_type</strong> is created.</p>
+
+<h3>alternate ids</h3>
+
+<p>Exactly similar to <strong>comment</strong> structure,  except a cvterm <strong>alt_id</strong> is created.</p>
+
+<p><img src="/images/alt_namespace.jpg"></p>
+
+<h3>xrefs(database cross references)</h3>
+
+<p>An <strong>xref</strong> cvterm is created,  model is identical to comment or alt_id.</p>
+
+<h3>synonym types</h3>
+
+<p>There are four synonym types,  EXACT,  BROAD,  NARROW and RELATED,  a cvterm is created
+for each of them under <strong>synonym_type</strong> namespace.</p>
+
+<p><img src="/images/synonym_type_namespace.jpg"></p>
+
+<h3>relationship property types</h3>
+
+<p>There are six of them &#8230;</p>
+
+<ul>
+<li>cyclic</li>
+<li>reflexive</li>
+<li>transitive</li>
+<li>anonymous</li>
+<li>domain</li>
+<li>range</li>
+</ul>
+
+
+<p>Stored in a similar fashion as that of <em>synonym_types</em></p>
+
+<p><img src="/images/relprop_namespace.jpg"></p>
+
+<h2>Cvterm(Ontology term)</h2>
+
+<h3>Term name and id</h3>
+
+<p>The idea for modeling the term itself is essentially the same as that of <strong>comment</strong> and
+<strong>alt_ids</strong>.</p>
+
+<p><img src="/images/cvterm.jpg"></p>
+
+<p>The term&#8217;s name goes in <em>cvterm.name</em> and the identifier(id) goes to <em>dbxref.accession</em>
+column. The cv and db namespaces are created before and are reused for every instance of
+term. For relationship term,  <em>is_relationship</em> column is set to true. Terms once stored
+generally don&#8217;t get deleted,  rather <em>is_obsolete</em> column flag is toggled for that.</p>
+
+<figure class='code'><figcaption><span>List of term name and identifier in an ontology</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">cvterm</span><span class="p">.</span><span class="n">name</span> <span class="n">name</span><span class="p">,</span> <span class="n">dbxref</span><span class="p">.</span><span class="n">accession</span> <span class="n">identifier</span>
+</span><span class='line'> <span class="k">FROM</span> <span class="n">cvterm</span>
+</span><span class='line'> <span class="k">JOIN</span> <span class="n">dbxref</span> <span class="k">ON</span> <span class="n">cvterm</span><span class="p">.</span><span class="n">dbxref_id</span><span class="o">=</span><span class="n">dbxref</span><span class="p">.</span><span class="n">dbxref_id</span>
+</span><span class='line'> <span class="k">JOIN</span> <span class="n">cv</span> <span class="k">ON</span> <span class="n">cv</span><span class="p">.</span><span class="n">cv_id</span><span class="o">=</span><span class="n">cvterm</span><span class="p">.</span><span class="n">cv_id</span>
+</span><span class='line'> <span class="k">WHERE</span> <span class="n">cv</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;gene ontology&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Synonym</h3>
+
+<h3>Alternate id</h3>
+
+<h3>Comment</h3>
+
+<h3>Xref</h3>
+
+<h3>Relationship term properties</h3>
+
+<h2>Term relationship</h2>
+
+<p><strong>cvterm_relationship</strong> holds relationship between terms in terms of triplets <strong>subject &#8211;>
+predicate &#8211;> object</strong>.</p>
+
+<p><img src="/images/cvterm_relation.jpg"></p>
+
+<p>A seprate table for relationship(graph edges) allows to hold children with multiple parents.</p>
+
+<figure class='code'><figcaption><span>All immediate children of a term </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">children</span><span class="p">.</span><span class="n">name</span> <span class="k">FROM</span> <span class="n">cvterm</span>  <span class="n">children</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm_relatationship</span> <span class="n">cvrel</span> <span class="k">ON</span> <span class="n">children</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">cvrel</span><span class="p">.</span><span class="n">subject_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">parent</span> <span class="k">ON</span> <span class="n">parent</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">cvrel</span><span class="p">.</span><span class="n">object_id</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">parent</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;mitochondrion&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>All immediate children with type of relation(variation) </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">children</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">relation</span><span class="p">.</span><span class="n">name</span> <span class="k">FROM</span> <span class="n">cvterm</span>  <span class="n">children</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm_relatationship</span> <span class="n">cvrel</span> <span class="k">ON</span> <span class="n">children</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">cvrel</span><span class="p">.</span><span class="n">subject_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">parent</span> <span class="k">ON</span> <span class="n">parent</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">cvrel</span><span class="p">.</span><span class="n">object_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">relation</span> <span class="k">ON</span> <span class="n">relation</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">cvrel</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">parent</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;mitochondrion&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>All immediate parents with type of relation </span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">parent</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">relation</span><span class="p">.</span><span class="n">name</span> <span class="k">FROM</span> <span class="n">cvterm</span>  <span class="n">parent</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm_relatationship</span> <span class="n">cvrel</span> <span class="k">ON</span> <span class="n">parent</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">cvrel</span><span class="p">.</span><span class="n">object_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">children</span> <span class="k">ON</span> <span class="n">children</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">cvrel</span><span class="p">.</span><span class="n">subject_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">relation</span> <span class="k">ON</span> <span class="n">relation</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">cvrel</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">children</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;mitochondrion&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+  
+    <footer>
+      <p class="meta">
+        
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-11-16T10:14:00-06:00" pubdate data-updated="true">Nov 16<span>th</span>, 2012</time>
+        
+      </p>
+      
+        <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/obo-loading/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/obo-loading/index.html" >Tweet</a>
+  
+  
+  
+</div>
+
+      
+    </footer>
+  
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About </h1>
+  <p>Unofficial blog of dictybase MOD(model organism database) developers.
+  		<br/><a href="/about">More ....</a>
+  </p>
+</section>
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("dictybase", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/dictybase" class="twitter-follow-button" data-show-count="false">Follow @dictybase</a>
+  
+</section>
+
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/dictybase">@dictybase</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'dictybase',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - dictyBase Developers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+     <script type="text/javascript">
+          jQuery(document).ready(function() {
+              // Put a TOC right before the entry content.
+              generateTOC('article',  'Table of Contents');
+        });
+     </script>
+
+
+
+</body>
+</html>

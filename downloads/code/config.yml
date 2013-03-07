@@ -1,0 +1,53 @@
+# sets up various command aliases and two groups sys and developer
+# with varying level of access
+sudo:
+  file: conf.d/sudoers.multigenome
+
+# create the groups and then add the user to that group
+# could add extra groups separated by colon
+group:
+  name: 'developer:sys:deploy'
+user:
+  user: newuser
+  pass: newpass
+  groups: 'developer:deploy'
+
+# the device should have an ext4 partition and shared folder will be the only folder
+# occupying the partition
+shared:
+  group: deploy
+  folder: '/shared'
+  device: '/dev/sdb1'
+
+# uncomment the following section for shared folder if it has to coexist with other folder in
+# the device. Make sure you comment the previous section. 
+#'shared-remount':
+#  group: deploy
+#  folder: '/home/shared'
+#  base: '/home'
+
+# Download rpms from here
+# http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html
+oracle:
+  rpm: '/home/user/downloads/rpms'
+  file: 'conf.d/tnsnames.ora'
+  host: localhost
+  sid:  orcl
+  service: served
+mojo:
+  mode: staging
+
+# look in the step by step section for sample files
+apache:
+  envvars:
+    file: 'env.sh'
+  vhost:
+    file: 'conf.d/apache_site.conf'
+    name: genome
+  perl:
+     file: 'conf.d/perl.conf'
+
+# this should match the shared folder 
+perlbrew:
+  root: '/shared'
+  perl: '5.10.1'

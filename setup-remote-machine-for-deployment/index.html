@@ -1,0 +1,905 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Setup remote machine for deployment - dictyBase Developers</title>
+  <meta name="author" content="dictyBase Developers">
+
+  
+  <meta name="description" content="Setup Remote Machine for Deployment May 30th, 2012 Local machine setup Clone the git repository with deploy tasks 1
+git://github.com/dictyBase/ &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://dictyBase.github.com/setup-remote-machine-for-deployment/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  // Revert jQuery's '$' alias,  to avoid clashes with ender.js. NOTE: Use
+    // jQuery(...),  instead of $(...) from here on.
+      jQuery.noConflict();
+</script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript"></script>
+<script src="/javascripts/generate-toc.js" type="text/javascript"></script>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">dictyBase Developers</a></h1>
+  
+    <h2>Solving one problem at a time</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:dictyBase.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/pages.html">Pages</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article role="article">
+  
+  <header>
+    <h1 class="entry-title">Setup Remote Machine for Deployment</h1>
+    <p class="meta">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-30T11:36:00-05:00" pubdate data-updated="true">May 30<span>th</span>, 2012</time></p>
+  </header>
+  
+  <h2>Local machine setup</h2>
+
+<h4>Clone the git repository with deploy tasks</h4>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git://github.com/dictyBase/deploy-task.git
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Setup perl environment</h4>
+
+<p>Documented <a href="/perl-setup">here</a></p>
+
+<h4>Install Rex</h4>
+
+<p>The perl <a href="https://metacpan.org/module/Rex">module</a> for writing and running all deployment tasks.</p>
+
+<p>First create a project specific local lib environment and install all required modules</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew lib create deploy-tasks
+</span><span class='line'>perlbrew use lib deploy-perl@deploy-tasks
+</span><span class='line'>cpanm -n Rex
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Before we start</h2>
+
+<p>The remote box should be accessible by ssh.</p>
+
+<p>It also have to be configured for public key based SSH authentication with any
+<strong>passphrase</strong>. It&#8217;s recommend not to use the default one,</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ssh-keygen -t rsa -f <span class="o">[</span>filename<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then add the content of <em>~/.ssh/[filename]_rsa.pub</em> file from
+local machine to the <em>~/.ssh/authorized_keys</em> of
+remote machine. Refer to the <strong>ssh-key</strong> rex task below for this transfer.</p>
+
+<h4>Running rex tasks</h4>
+
+<p>All the rex task are going to run remotely,  so it is <strong>not at all needed to be
+installed</strong> on remote machine.
+Create a default Rexfile and add the correct user name and ssh key credentials.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>cp Rexfile.sample Rexfile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span>&#8216;Sample rexfile public key&#8217;  (Rexfile)</span> <a href='/downloads/code/Rexfile'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="k">use</span> <span class="n">lib</span> <span class="s">&#39;lib&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">user</span> <span class="s">&#39;user_name&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">private_key</span> <span class="s">&#39;path_to_private_key&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">public_key</span> <span class="s">&#39;path_to_public_key&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">key_auth</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="n">Tasks</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span>&#8216;Sample Rexfile with password&#8217;  (Rexfile_pass)</span> <a href='/downloads/code/Rexfile_pass'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="k">use</span> <span class="n">lib</span> <span class="s">&#39;lib&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">user</span> <span class="s">&#39;user_name&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">password</span> <span class="s">&#39;pass&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">pass_auth</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="n">Tasks</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Check the list of tasks that are available to run. Make sure which are mentioned to run
+as sudo, pass the sudo password (-S)in the argument</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -T
+</span><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo pass&gt; &lt;task_name&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To run sudo globally,  add it to the Rexfile</p>
+
+<figure class='code'><figcaption><span>&#8216;Rexfile with sudo on&#8217;  (Rexfile_sudo)</span> <a href='/downloads/code/Rexfile_sudo'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="k">use</span> <span class="n">lib</span> <span class="s">&#39;lib&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">user</span> <span class="s">&#39;user_name&#39;</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># global sudo</span>
+</span><span class='line'><span class="n">sudo_password</span> <span class="s">&#39;48343jfen&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">sudo</span> <span class="o">-</span><span class="n">on</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">private_key</span> <span class="s">&#39;path_to_private_key&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">public_key</span> <span class="s">&#39;path_to_public_key&#39;</span><span class="p">;</span>
+</span><span class='line'><span class="n">key_auth</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">require</span> <span class="n">Tasks</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To run a non-default Rexfile</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -f <span class="o">[</span>other_file<span class="o">]</span> task_name
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Last but not the least</h4>
+
+<ul>
+<li>The shared folder is assumed to be hosted on a separated partition. It has to be created
+with an ext4 filesystem before any of the task is being run.</li>
+<li>However in case of shared device which is already mounted the above step is not needed.
+Refer to the <strong>Setup shared folder</strong> section below for detail.</li>
+<li>Various configuration files needed for sys admin tasks are either present in <strong>conf.d</strong>
+folder or mentioned in the detail guide. Make sure to consult them if something is
+unclear.</li>
+</ul>
+
+
+<h2>Sys admin tasks</h2>
+
+<p>The tasks are assumed to be run on a remote CentOS box and so yum/rpm is selected for
+package installation. At this point no heuristics is performed to identify the type of
+remote box.</p>
+
+<h3>Quick steps</h3>
+
+<p>Create a yaml file in <strong>$HOME/.rex/config.yml</strong> and run the given Rex tasks</p>
+
+<figure class='code'><figcaption><span>&#8216;sample rex config&#8217;  (config.yml)</span> <a href='/downloads/code/config.yml'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="c1"># sets up various command aliases and two groups sys and developer</span>
+</span><span class='line'><span class="c1"># with varying level of access</span>
+</span><span class='line'><span class="l-Scalar-Plain">sudo</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">file</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">conf.d/sudoers.multigenome</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># create the groups and then add the user to that group</span>
+</span><span class='line'><span class="c1"># could add extra groups separated by colon</span>
+</span><span class='line'><span class="l-Scalar-Plain">group</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="s">&#39;developer:sys:deploy&#39;</span>
+</span><span class='line'><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">newuser</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">pass</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">newpass</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">groups</span><span class="p-Indicator">:</span> <span class="s">&#39;developer:deploy&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># the device should have an ext4 partition and shared folder will be the only folder</span>
+</span><span class='line'><span class="c1"># occupying the partition</span>
+</span><span class='line'><span class="l-Scalar-Plain">shared</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">group</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">deploy</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">folder</span><span class="p-Indicator">:</span> <span class="s">&#39;/shared&#39;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">device</span><span class="p-Indicator">:</span> <span class="s">&#39;/dev/sdb1&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># uncomment the following section for shared folder if it has to coexist with other folder in</span>
+</span><span class='line'><span class="c1"># the device. Make sure you comment the previous section. </span>
+</span><span class='line'><span class="c1">#&#39;shared-remount&#39;:</span>
+</span><span class='line'><span class="c1">#  group: deploy</span>
+</span><span class='line'><span class="c1">#  folder: &#39;/home/shared&#39;</span>
+</span><span class='line'><span class="c1">#  base: &#39;/home&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Download rpms from here</span>
+</span><span class='line'><span class="c1"># http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html</span>
+</span><span class='line'><span class="l-Scalar-Plain">oracle</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">rpm</span><span class="p-Indicator">:</span> <span class="s">&#39;/home/user/downloads/rpms&#39;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">file</span><span class="p-Indicator">:</span> <span class="s">&#39;conf.d/tnsnames.ora&#39;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">host</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">localhost</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">sid</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">orcl</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">service</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">served</span>
+</span><span class='line'><span class="l-Scalar-Plain">mojo</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">mode</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">staging</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># look in the step by step section for sample files</span>
+</span><span class='line'><span class="l-Scalar-Plain">apache</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">envvars</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">file</span><span class="p-Indicator">:</span> <span class="s">&#39;env.sh&#39;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">vhost</span><span class="p-Indicator">:</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">file</span><span class="p-Indicator">:</span> <span class="s">&#39;conf.d/apache_site.conf&#39;</span>
+</span><span class='line'>    <span class="l-Scalar-Plain">name</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">genome</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">perl</span><span class="p-Indicator">:</span>
+</span><span class='line'>     <span class="l-Scalar-Plain">file</span><span class="p-Indicator">:</span> <span class="s">&#39;conf.d/perl.conf&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># this should match the shared folder </span>
+</span><span class='line'><span class="l-Scalar-Plain">perlbrew</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">root</span><span class="p-Indicator">:</span> <span class="s">&#39;/shared&#39;</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">perl</span><span class="p-Indicator">:</span> <span class="s">&#39;5.10.1&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Rex tasks</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s setup:dicty:box
+</span><span class='line'>rex -H &lt;host&gt; setup:dicty:perl
+</span><span class='line'>
+</span><span class='line'><span class="c"># check for status of perl installation before running the toolchain task</span>
+</span><span class='line'>rex -H &lt;host&gt; perl:install-status
+</span><span class='line'>rex -H &lt;host&gt; setup:dicty:perl-toolchain
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Alternate step by step</h3>
+
+<p><strong>Skip</strong> this entire section if you have already gone through <strong>Quick steps</strong></p>
+
+<p>Add extra repositories</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; add:repos
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add extra sudoers configuration file</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; add:sudoers --file<span class="o">=</span>conf.d/sudoers.multigenome
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add user to developers and deploy groups</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; add:groups --name<span class="o">=</span>developer:deploy
+</span><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; add:user --user<span class="o">=</span>&lt;user&gt; --pass<span class="o">=</span>&lt;pass&gt; --groups<span class="o">=</span>developer:deploy
+</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<p>Install packages</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; install:dicty-pack
+</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<p>Setup shared folder</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Remember the device is expected to have a ext4 partition
+</span><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; setup:shared-folder --group<span class="o">=[</span>deploy<span class="o">]</span> <span class="se">\ </span>
+</span><span class='line'>               --folder<span class="o">=[</span>/dictybase<span class="o">]</span> --device<span class="o">=[]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The above task is suitable when the entire device is dedicated for the shared folder.
+However,  if the shared folder has to coexist in a device(shared folder) with other
+folders,  the run the following task &#8230;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; setup:shared-folder-remount --group<span class="o">=[</span>deploy<span class="o">]</span> <span class="se">\ </span>
+</span><span class='line'>               --folder<span class="o">=[</span>/dictybase<span class="o">]</span> --base-folder<span class="o">[</span><span class="nv">$HOME</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It will remount the base folder with <strong>acl</strong> and sets the proper share permission for the
+folder. However,  it is not persistent over reboot,  so add the acl entry to fstab
+manually to make it stick.</p>
+
+<hr />
+
+<p>Set daemontools</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; setup:daemontools
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Mojolicious web application setup</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; setup:global-mojo --mode<span class="o">=[</span>staging|production<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<p>Apache setup</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s -S &lt;sudo_pass&gt; setup:apache:envvars --file<span class="o">=[</span>file<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The following envvars have to be defined</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">export</span> ASSETS_DIR=....
+</span><span class='line'><span class="nb">export</span> WEBAPPS_DIR=...
+</span><span class='line'><span class="nb">export</span> WEBHOST_NAME=....
+</span><span class='line'><span class="nb">export</span> DICTYHOST_NAME=....
+</span><span class='line'><span class="nb">export</span> MULTIGENOME_WEBROOT=....
+</span><span class='line'><span class="nb">export</span> GBROWSE_HOST=....
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">rex</span> -H &lt;host&gt; -s -S &lt;sudo_pass&gt; setup:apache:vhost --file=[file] --name=multigenome.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A minimal configuration file</p>
+
+<figure class='code'><figcaption><span>&#8216;multigenome virtualhost configration&#8217;  (multigenome.conf)</span> <a href='/downloads/code/multigenome.conf'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nt">&lt;VirtualHost</span> <span class="s">${WEBHOST_NAME}:80</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nb">ServerAdmin</span> admin@admin.edu
+</span><span class='line'>    <span class="nb">ServerName</span> multigenome
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>    <span class="c">#</span>
+</span><span class='line'>    <span class="c"># LogLevel: Control the number of messages logged to the error_log.</span>
+</span><span class='line'>    <span class="c"># Possible values include: debug, info, notice, warn, error, crit,</span>
+</span><span class='line'>    <span class="c"># alert, emerg.</span>
+</span><span class='line'>    <span class="c">#</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nb">LogLevel</span> <span class="k">warn</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># RewriteLogLevel 3 </span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nb">LogFormat</span> <span class="s2">&quot;%h %l %u %t \&quot;%r\&quot; %&gt;s %b \&quot;%{Referer}i\&quot; \&quot;%{User-Agent}i\&quot;&quot;</span> vhost_common
+</span><span class='line'>    <span class="nb">ErrorLog</span> <span class="sx">/var/log/httpd/</span>${WEBHOST_NAME}_error.log
+</span><span class='line'>    <span class="nb">CustomLog</span> <span class="sx">/var/log/httpd/</span>${WEBHOST_NAME}_access.log vhost_common
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># HTTP compression logging</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c">#DeflateFilterNote Input input_info</span>
+</span><span class='line'>    <span class="c">#DeflateFilterNote Output output_info</span>
+</span><span class='line'>    <span class="c">#DeflateFilterNote Ratio ratio_info</span>
+</span><span class='line'>    <span class="c">#LogFormat &#39;&quot;%r&quot; %{output_info}n/%{input_info}n (%{ratio_info}n%%)&#39; deflate</span>
+</span><span class='line'>    <span class="c">#CustomLog /var/log/apache2/deflate_log deflate</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nb">DocumentRoot</span> ${MULTIGENOME_WEBROOT}
+</span><span class='line'>    <span class="nb">DirectoryIndex</span> index.html index.htm default.htm multigenome.html
+</span><span class='line'>
+</span><span class='line'>    <span class="nb">RewriteEngine</span> <span class="k">On</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c">#Redirect for fasta download page</span>
+</span><span class='line'>    <span class="nb">RedirectMatch</span> ^/downloads/fasta   http://${DICTYHOST_NAME}/downloads/fasta
+</span><span class='line'>    <span class="nb">RewriteRule</span> ^/discoideum(\S*)  http://${DICTYHOST_NAME}$1 [NC,L,R]
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="c">## -- serving static files through apache</span>
+</span><span class='line'><span class="c">#</span>
+</span><span class='line'>    <span class="nb">Alias</span> <span class="sx">/assets</span> ${ASSETS_DIR}
+</span><span class='line'>    <span class="nt">&lt;Directory</span> <span class="s">&quot;${ASSETS_DIR}&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>        <span class="nb">Allow</span> from <span class="k">all</span>
+</span><span class='line'>          <span class="nt">&lt;IfModule</span> <span class="s">mod_expires.c</span><span class="nt">&gt;</span>
+</span><span class='line'>            <span class="nb">ExpiresActive</span> <span class="k">On</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="nb">ExpiresByType</span> image/jpg <span class="s2">&quot;access plus 6 months&quot;</span>
+</span><span class='line'>              <span class="nb">ExpiresByType</span> image/gif <span class="s2">&quot;access plus 6 months&quot;</span>
+</span><span class='line'>              <span class="nb">ExpiresByType</span> image/png <span class="s2">&quot;access plus 6 months&quot;</span>
+</span><span class='line'>              <span class="nb">ExpiresByType</span> application/javascript <span class="s2">&quot;access plus 3 months&quot;</span>
+</span><span class='line'>              <span class="nb">ExpiresByType</span> application/x-javascript <span class="s2">&quot;access plus 3 months&quot;</span>
+</span><span class='line'>              <span class="nb">ExpiresByType</span> text/ecmascript <span class="s2">&quot;access plus 3 months&quot;</span>
+</span><span class='line'>              <span class="nb">ExpiresByType</span> text/javascript <span class="s2">&quot;access plus 3 months&quot;</span>
+</span><span class='line'>
+</span><span class='line'>              <span class="nt">&lt;/IfModule&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/Directory&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nt">&lt;Location</span> <span class="s">/assets</span><span class="nt">&gt;</span>
+</span><span class='line'>        <span class="nb">SetHandler</span> default-handler
+</span><span class='line'>    <span class="nt">&lt;/Location&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nb">HeaderName</span> <span class="sx">/assets/include/default/page-header.html</span>
+</span><span class='line'>    <span class="nb">ReadmeName</span> <span class="sx">/assets/include/default/page-footer.html</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c"># gbrowse2 proxy</span>
+</span><span class='line'>    <span class="nt">&lt;Proxy</span> <span class="s">*</span><span class="nt">&gt;</span>
+</span><span class='line'>        <span class="nb">Allow</span> from <span class="k">all</span>
+</span><span class='line'>    <span class="nt">&lt;/Proxy&gt;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nb">ProxyPass</span>         <span class="sx">/browser</span>  ${GBROWSE_HOST}/browser
+</span><span class='line'>    <span class="nb">ProxyPassReverse</span>  <span class="sx">/browser</span>  ${GBROWSE_HOST}/browser
+</span><span class='line'>    <span class="nb">ProxyPass</span>         <span class="sx">/gbrowse2</span> ${GBROWSE_HOST}/gbrowse2
+</span><span class='line'>    <span class="nb">ProxyPassReverse</span>  <span class="sx">/gbrowse2</span> ${GBROWSE_HOST}/gbrowse2
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;/VirtualHost&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">rex</span> -H &lt;host&gt; -s -S &lt;sudo_pass&gt; setup:apache:perl-code --file=[file]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span>&#8216;mod_perl configuration&#8217;  (perl.conf)</span> <a href='/downloads/code/perl.conf'>download</a></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'>    <span class="c">## -- Including all conf file for each web application</span>
+</span><span class='line'>    <span class="c">## -- Assuming here that mod_perl is included in apache2</span>
+</span><span class='line'>    <span class="nt">&lt;Perl&gt;</span>
+</span><span class='line'>           <span class="nb">my</span> $folder = $ENV{WEBAPPS_DIR};
+</span><span class='line'>           <span class="nb">if</span> (-e $folder) {
+</span><span class='line'>              <span class="nb">opendir</span> my $web,  $folder or die <span class="s2">&quot;cannot open dir $!&quot;</span>;
+</span><span class='line'>              <span class="nb">my</span> @dirs = map {<span class="s2">&quot;$folder/$_&quot;</span>} grep {/^[A-Z, a-z,\-]+$/} readdir $web;
+</span><span class='line'>              <span class="nb">closedir</span> $web;
+</span><span class='line'>              <span class="nb">for</span> my $name(@dirs) {
+</span><span class='line'>                 <span class="nb">my</span> $config = <span class="s2">&quot;$name/deploy/apache.conf&quot;</span>;
+</span><span class='line'>                 <span class="nb">if</span> (-e $config) {
+</span><span class='line'>                     <span class="nb">push</span> @Include,$config;
+</span><span class='line'>                 <span class="err">}</span>
+</span><span class='line'>              <span class="err">}</span>
+</span><span class='line'>            <span class="err">}</span>
+</span><span class='line'>    <span class="nt">&lt;/Perl&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">rex</span> -H &lt;host&gt; -s -S &lt;sudo_pass&gt; setup:apache:startup
+</span></code></pre></td></tr></table></div></figure>
+
+
+<hr />
+
+<p>Oracle client setup</p>
+
+<p>  It installs the instant client rpms and sets up oracle environment
+  globally. Oracle instantclient could be downloaded from
+  <a href="http://www.oracle.com/technetwork/topics/linuxx86-64soft-092277.html">here</a>. For here we
+  need three rpms</p>
+
+<ul>
+<li>oracle-instantclient-basic-10.2.0.4-1.x86_64.rpm</li>
+<li>oracle-instantclient-sqlplus-10.2.0.4-1.x86_64.rpm</li>
+<li>oracle-instantclient-devel-10.2.0.4-1.x86_64.rpm</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -S &lt;sudo_pass&gt; setup:oracle-client --rpm<span class="o">=</span>rpms
+</span><span class='line'>rex -H &lt;host&gt; -S &lt;sudo_pass&gt; setup:oracle:tnsnames --file<span class="o">=[</span>file<span class="o">]</span> <span class="se">\ </span>
+</span><span class='line'>    --host<span class="o">=[</span>host<span class="o">]</span> --sid<span class="o">=[</span>sid<span class="o">]</span> --service<span class="o">=[</span>service_name<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Setup perl environment</h2>
+
+<p>perl environment for deployment will be setup using perlbrew in the shared
+folder(/dictybase). The first task requires sudo access if <strong>system</strong> argument is given.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rex -H &lt;host&gt; -s perlbrew:install --install-root<span class="o">=</span>/dictybase/perl5 --system<span class="o">=</span>1
+</span><span class='line'>rex -H &lt;host&gt; perlbrew:install-cpanm
+</span><span class='line'>rex -H &lt;host&gt; perl:install-notest
+</span><span class='line'>rex -H &lt;host&gt; perlbrew:switch --version<span class="o">=</span>perl-5.10.1
+</span><span class='line'>rex -H &lt;host&gt; perl:install-toolchain
+</span></code></pre></td></tr></table></div></figure>
+
+
+  
+    <footer>
+      <p class="meta">
+        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Siddhartha Basu</span></span>
+
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-30T11:36:00-05:00" pubdate data-updated="true">May 30<span>th</span>, 2012</time>
+        
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/deployment/'>Deployment</a>, <a class='category' href='/blog/categories/remote-virtual-machine/'>Remote virtual machine</a>, <a class='category' href='/blog/categories/setup/'>Setup</a>
+  
+</span>
+
+
+      </p>
+      
+        <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/setup-remote-machine-for-deployment/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/setup-remote-machine-for-deployment/index.html" >Tweet</a>
+  
+  
+  
+</div>
+
+      
+    </footer>
+  
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About </h1>
+  <p>Unofficial blog of dictybase MOD(model organism database) developers.
+  		<br/><a href="/about">More ....</a>
+  </p>
+</section>
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("dictybase", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/dictybase" class="twitter-follow-button" data-show-count="false">Follow @dictybase</a>
+  
+</section>
+
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/dictybase">@dictybase</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'dictybase',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - dictyBase Developers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+
+
+</body>
+</html>
