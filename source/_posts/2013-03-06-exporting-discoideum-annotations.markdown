@@ -107,7 +107,7 @@ $_> modware-export chado2alignmentgff3 -c gff3.yaml --org dicty \
      --reference_type chromosome  --feature_type cDNA_clone -o data/cDNA_clone.gff3
 ```
 ```bash
-$_> modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/cDNA_clone.gff3\ 
+$_> modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/genomic_fragment.gff3\ 
      --reference_type chromosome  --feature_type databank_entry \
      --match_type nucleotide_match 
 ```
