@@ -7,10 +7,7 @@ sharing: true
 footer: true
 author: Siddhartha Basu
 enlist: true
-categories:
- - Remote virtual machine
- - Setup
- - Deployment
+documentation: true
 ---
 
 

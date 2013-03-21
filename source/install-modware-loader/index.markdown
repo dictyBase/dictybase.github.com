@@ -6,6 +6,8 @@ comments: true
 sharing: true
 footer: true
 enlist: true
+documentation: true
+author: Siddhartha Basu
 ---
 
 [Modware-Loader](https://github.com/dictyBase/Modware-Loader) distribution provides
