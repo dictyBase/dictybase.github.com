@@ -4,7 +4,7 @@
   <title><![CDATA[dictyBase Developers]]></title>
   <link href="http://dictyBase.github.com/atom.xml" rel="self"/>
   <link href="http://dictyBase.github.com/"/>
-  <updated>2013-03-07T15:08:20-06:00</updated>
+  <updated>2013-03-21T14:32:22-05:00</updated>
   <id>http://dictyBase.github.com/</id>
   <author>
     <name><![CDATA[dictyBase Developers]]></name>
@@ -343,7 +343,7 @@ reprediction pipeline.</p>
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/cDNA_clone.gff3<span class="se">\ </span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/genomic_fragment.gff3<span class="se">\ </span>
 </span><span class='line'>     --reference_type chromosome  --feature_type databank_entry <span class="se">\</span>
 </span><span class='line'>     --match_type nucleotide_match
 </span></code></pre></td></tr></table></div></figure>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Genome | dictyBase Developers]]></title>
   <link href="http://dictyBase.github.com/blog/categories/genome/atom.xml" rel="self"/>
   <link href="http://dictyBase.github.com/"/>
-  <updated>2013-03-07T15:08:20-06:00</updated>
+  <updated>2013-03-21T14:32:22-05:00</updated>
   <id>http://dictyBase.github.com/</id>
   <author>
     <name><![CDATA[dictyBase Developers]]></name>
@@ -324,7 +324,7 @@ $_> modware-export chado2alignmentgff3 -c gff3.yaml --org dicty \</p>
 
 <p><code>
 </code>bash
-$_> modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/cDNA_clone.gff3\</p>
+$_> modware-export chado2alignmentgff3 -c gff3.yaml --org dicty -o data/genomic_fragment.gff3\</p>
 
 <pre><code> --reference_type chromosome  --feature_type databank_entry \
  --match_type nucleotide_match 

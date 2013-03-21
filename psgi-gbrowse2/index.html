@@ -1,0 +1,639 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Running PSGI gbrowse2 - dictyBase Developers</title>
+  <meta name="author" content="dictyBase Developers">
+
+  
+  <meta name="description" content="Running PSGI Gbrowse2 Mar 20th, 2013 Preamble Skip this section if you just want to go ahead with installation.
+Read either of PSGI readme or the &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://dictyBase.github.com/psgi-gbrowse2/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  // Revert jQuery's '$' alias,  to avoid clashes with ender.js. NOTE: Use
+    // jQuery(...),  instead of $(...) from here on.
+      jQuery.noConflict();
+</script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript"></script>
+<script src="/javascripts/generate-toc.js" type="text/javascript"></script>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">dictyBase Developers</a></h1>
+  
+    <h2>Solving one problem at a time</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:dictyBase.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/pages.html">Pages</a></li>
+  <li><a href="/pages/documentation">Documentation</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article role="article">
+  
+  <header>
+    <h1 class="entry-title">Running PSGI Gbrowse2</h1>
+    <p class="meta">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-20T15:17:00-05:00" pubdate data-updated="true">Mar 20<span>th</span>, 2013</time></p>
+  </header>
+  
+  <h3>Preamble</h3>
+
+<ul>
+<li>Skip this section if you just want to go ahead with installation.</li>
+<li>Read either of <a href="https://github.com/dictyBase/GBrowse-PSGI/blob/develop/README.psgi">PSGI readme</a> or the blog <a href="http://toddharris.net/blog/2011/09/11/running-the-generic-genome-browser-under-psgiplack">post</a>.</li>
+<li>The steps below are essentially a modified version of the installation routine described above.</li>
+<li><a href="http://perlbrew.pl">Perlbrew</a> is used for managing perl without root privileges and system perl is left alone.</li>
+<li>Perlbrew&#8217;s local lib feature is used for managing dependencies.</li>
+<li><a href="https://metacpan.org/module/cpanm">cpanm</a> is used for installing dependencies.</li>
+<li>For deployment purposes modules are installed without running the unit tests(cpanm -n)</li>
+</ul>
+
+
+<h3>Perl environment</h3>
+
+<ul>
+<li>Install <a href="http://perlbrew.pl">perlbrew</a></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl -kL http://install.perlbrew.pl | bash</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Then setup your bash environment as instructed by perlbrew. Typically that will be in your .bashrc</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">source</span> ~/perl5/perlbrew/etc/bashrc
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>For custom installation of perlbrew set the PERLBREW_HOME environmental variable. For example if it needs to be installed in a shared folder such as /home/gbrowse</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">PERLBREW_ROOT</span><span class="o">=</span>/home/gbrowse
+</span><span class='line'>curl -kL http://install.perlbrew.pl | bash
+</span><span class='line'>In the .bashrc
+</span><span class='line'><span class="nb">export </span><span class="nv">PERLBREW_ROOT</span><span class="o">=</span>/home/gbrowse
+</span><span class='line'><span class="nb">source</span> <span class="k">${</span><span class="nv">PERLBREW_ROOT</span><span class="k">}</span>/etc/bashrc
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Install perl</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew install  perl-5.10.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Alternatively, with some compile time options in a 64bit CentOs 6 system</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew install perl-5.10.1 -j 4  -Duse64bitall  -Duselargefiles <span class="se">\ </span>
+</span><span class='line'>                -Aldflags<span class="o">=</span><span class="s1">&#39;-L/lib64 -L/usr/lib64&#39;</span> -Dcc<span class="o">=</span>g
+</span><span class='line'>perlbrew switch perl-5.10.1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Install cpanm and some helper modules</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew install-cpanm
+</span><span class='line'>cpanm -n App::pmuninstall App::cpanoutdated
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Create a standalone local lib for installing dependencies. Use a separate local lib for every version of gbrowse2</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> perlbrew lib create gbrowse-2.40
+</span><span class='line'> perlbrew use lib perl-5.10.1@gbrowse-2.40 <span class="o">(</span>perl version might vary<span class="o">)</span>
+</span><span class='line'> perlbrew switch lib perl-5.10.1@gbrowse-2.40 <span class="o">(</span>make it permanent in the bash<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Checkout gbrowse2 from github and go to the develop branch</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git://github.com/dictyBase/GBrowse-PSGI.git
+</span><span class='line'>git checkout -b develop origin/develop
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><strong>Install dependencies</strong></li>
+<li>gbrowse2 needs <a href="http://boutel.com/gd">libgd2</a> to function. Looks <a href="http://gmod.org/wiki/GBrowse_2.0_Prerequisites">here</a> for installing in your OS. Instructions for debian,red hat based linuxes and MacOSX are given there. However, for a latest MacOSX with <a href="http://mxcl.github.com/homebrew/">homebrew</a>, you should do with <strong>brew install</strong></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">HARNESS_OPTIONS</span><span class="o">=</span>j4 cpanm -n --installdeps .
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Setup gbrowse2</h3>
+
+<p><strong>Most of the commands below are recommended to run from inside of gbrowse2 checkout folder</strong></p>
+
+<ul>
+<li>Set envrionmental variables. Vary the gbrowse version as needed.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">GBROWSE_ROOT</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/gbrowse
+</span><span class='line'><span class="nb">export </span><span class="nv">GBROWSE_VERSION</span><span class="o">=</span>2.40
+</span><span class='line'>
+</span><span class='line'>The above will setup the folder where gbrowse2 html,js,
+</span><span class='line'>temporary files,sessions,images,config files etc will be kept.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Note:</strong> For CentOs with SELinux enabled install Term::ReadKey</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>cpanm Term::ReadKey
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Configure gbrowse2 path. Run the command below from the gbrowse2 checkout folder.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>perl Build.PL --conf <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>/conf <span class="se">\</span>
+</span><span class='line'>             --htdocs <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>/html <span class="se">\</span>
+</span><span class='line'>             --cgibin <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>/cgi <span class="se">\</span>
+</span><span class='line'>             --tmp <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>/tmp <span class="se">\</span>
+</span><span class='line'>             --persistent <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>/tmp/persistent  <span class="se">\</span>
+</span><span class='line'>             --databases <span class="nv">$GBROWSE_ROOT</span>/databases <span class="se">\</span>
+</span><span class='line'>             --installconf n --installetc n   <span class="se">\</span>
+</span><span class='line'>             --wwwuser <span class="nv">$LOGNAME</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Install gbrowse2 libraries. Just press enter at the password prompt. Also answer &#8216;no[n]&#8217; for apache2 restart.</li>
+</ul>
+
+
+<p><strong>Note:</strong> Again for CentOs with SELinux enabled, it will ask for sudo password. Just hit enter three times.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./Build install
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Edit the configuration files. It is recommended to edit the configuration files in the installed folder rather than the stock one. It gives the flexibility of having separate config files for every version.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>
+</span><span class='line'>and edit the files
+</span><span class='line'>Make sure the paths in the yeast demo files are being <span class="nb">set </span>properly.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Run and test out gbrowse2 with plack</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>plackup <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>/conf/GBrowse.psgi
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Open http://localhost:5000/gbrowse in your browser</li>
+</ul>
+
+
+<h2>Deploy</h2>
+
+<p>Two modes of plack deployment have been tested, <a href="https://metacpan.org/module/Starman">Starman</a> as backend web server and standalone <a href="https://metacpan.org/module/Plack::Handler::FCGI">FCGI</a> . Instructions are given for <a href="http://nginx.org">nginx</a> however setting up with apache2 would be simple.
+* Install nginx using your OS package manager.</p>
+
+<h3>Nginx with Starman</h3>
+
+<ul>
+<li>Install and then start <strong>Starman</strong></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>cpanm Starman
+</span><span class='line'>plackup -s Starman --port 9000 --daemonize --pid /tmp/starman_gb2.pid <span class="se">\</span>
+</span><span class='line'>    <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>/conf/GBrowse.psgi
+</span><span class='line'>
+</span><span class='line'>The above will have Starman running in background on port 9000
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Open and edit the nginx.conf file. It will deploy it under /browser</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">## upstream block</span>
+</span><span class='line'>upstream gb2 <span class="o">{</span>
+</span><span class='line'>  server 127.0.0.1:9000
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># backend server mapping</span>
+</span><span class='line'>location /browser <span class="o">{</span>
+</span><span class='line'>   proxy_read_timeout 300;
+</span><span class='line'>   rewrite /browser/<span class="o">(</span>.*<span class="o">)</span> /<span class="nv">$1</span> <span class="nb">break</span>;
+</span><span class='line'>   proxy_pass http://gb2;
+</span><span class='line'>   proxy_set_header Host <span class="nv">$host</span>;
+</span><span class='line'>   proxy_set_header X-Forwarded-For <span class="nv">$proxy_add_x_forwarded_for</span>;
+</span><span class='line'>   proxy_set_header X-Forwarded-Host <span class="nv">$host</span>;
+</span><span class='line'>   proxy_set_header X-Real-IP <span class="nv">$remote_addr</span>;
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># serving static files directly instead of going through Starman</span>
+</span><span class='line'><span class="c"># better for deployment</span>
+</span><span class='line'><span class="c"># For every gbrowse version path have to be changed </span>
+</span><span class='line'>location /gbrowse2 <span class="o">{</span>
+</span><span class='line'>   <span class="nb">alias</span> /home/ubuntu/GBrowse-PSGI/gbrowse/2.40/html;
+</span><span class='line'>   expires 30d;
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Open your browser at <strong>http://localhost/browser/gbrowse</strong></li>
+<li>Stop Starman</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">kill</span> <span class="sb">`</span>cat /tmp/starman_gb2.pid<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Nginx with FCGI</h3>
+
+<p><strong>Note:</strong> The gbrowse_img script do not work with this backend. It run only once and then gives no response.</p>
+
+<ul>
+<li>Install and start standalone FCGI</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> cpanm FCGI FCGI::ProcManager
+</span><span class='line'> plackup -s FCGI --nproc 10 --listen /tmp/gbrowse.sock --pid /tmp/fcgi_gb2.pid --daemonize <span class="se">\</span>
+</span><span class='line'>                       <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>/conf/GBrowse.psgi
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Open and edit nginx.conf file</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>location /browser <span class="o">{</span>
+</span><span class='line'>     <span class="nb">set</span> <span class="nv">$script</span> <span class="s2">&quot;&quot;</span>;
+</span><span class='line'>     <span class="nb">set</span> <span class="nv">$path_info</span> <span class="nv">$uri</span>;
+</span><span class='line'>     fastcgi_pass unix:/tmp/gbrowse.sock;
+</span><span class='line'>     fastcgi_param  SCRIPT_NAME      /browser;
+</span><span class='line'>     fastcgi_param  PATH_INFO        <span class="nv">$path_info</span>;
+</span><span class='line'>     fastcgi_param  QUERY_STRING     <span class="nv">$query_string</span>;
+</span><span class='line'>     fastcgi_param  REQUEST_METHOD   <span class="nv">$request_method</span>;
+</span><span class='line'>     fastcgi_param  CONTENT_TYPE     <span class="nv">$content_type</span>;
+</span><span class='line'>     fastcgi_param  CONTENT_LENGTH   <span class="nv">$content_length</span>;
+</span><span class='line'>     fastcgi_param  REQUEST_URI      <span class="nv">$request_uri</span>;
+</span><span class='line'>     fastcgi_param  SERVER_PROTOCOL  <span class="nv">$server_protocol</span>;
+</span><span class='line'>     fastcgi_param  REMOTE_ADDR      <span class="nv">$remote_addr</span>;
+</span><span class='line'>     fastcgi_param  REMOTE_PORT      <span class="nv">$remote_port</span>;
+</span><span class='line'>     fastcgi_param  SERVER_ADDR      <span class="nv">$server_addr</span>;
+</span><span class='line'>     fastcgi_param  SERVER_PORT      <span class="nv">$server_port</span>;
+</span><span class='line'>     fastcgi_param  SERVER_NAME      <span class="nv">$server_name</span>;
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c"># serving static files directly instead of going through perl FCGI</span>
+</span><span class='line'><span class="c"># better for deployment</span>
+</span><span class='line'><span class="c"># For every gbrowse version path have to be changed </span>
+</span><span class='line'>location /gbrowse2 <span class="o">{</span>
+</span><span class='line'>   <span class="nb">alias</span> /home/ubuntu/GBrowse-PSGI/gbrowse/2.40/html;
+</span><span class='line'>   expires 30d;
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Open your browser at <strong>http://localhost/browser/gbrowse</strong></li>
+<li>Stop FCGI</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">kill</span> <span class="sb">`</span>cat /tmp/fcgi_gb2.pid<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+  
+    <footer>
+      <p class="meta">
+        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Siddhartha Basu</span></span>
+
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-20T15:17:00-05:00" pubdate data-updated="true">Mar 20<span>th</span>, 2013</time>
+        
+      </p>
+      
+        <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/psgi-gbrowse2/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/psgi-gbrowse2/index.html" >Tweet</a>
+  
+  
+  
+</div>
+
+      
+    </footer>
+  
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About </h1>
+  <p>Unofficial blog of dictybase MOD(model organism database) developers.
+  		<br/><a href="/about">More ....</a>
+  </p>
+</section>
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("dictybase", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/dictybase" class="twitter-follow-button" data-show-count="false">Follow @dictybase</a>
+  
+</section>
+
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/dictybase">@dictybase</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'dictybase',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - dictyBase Developers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+
+
+</body>
+</html>

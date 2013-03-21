@@ -1,0 +1,358 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Integrate dictyBase headers and footers in gbrowse2 - dictyBase Developers</title>
+  <meta name="author" content="dictyBase Developers">
+
+  
+  <meta name="description" content="Integrate dictyBase Headers and Footers in Gbrowse2 Mar 20th, 2013 Setup header and footer checkout asset repository 1
+2
+cd /home/share
+git clone &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://dictyBase.github.com/integrate-dictybase-header-footer-gbrowse2/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  // Revert jQuery's '$' alias,  to avoid clashes with ender.js. NOTE: Use
+    // jQuery(...),  instead of $(...) from here on.
+      jQuery.noConflict();
+</script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript"></script>
+<script src="/javascripts/generate-toc.js" type="text/javascript"></script>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">dictyBase Developers</a></h1>
+  
+    <h2>Solving one problem at a time</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:dictyBase.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/pages.html">Pages</a></li>
+  <li><a href="/pages/documentation">Documentation</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article role="article">
+  
+  <header>
+    <h1 class="entry-title">Integrate dictyBase Headers and Footers in Gbrowse2</h1>
+    <p class="meta">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-20T16:16:00-05:00" pubdate data-updated="true">Mar 20<span>th</span>, 2013</time></p>
+  </header>
+  
+  <h3>Setup header and footer</h3>
+
+<ul>
+<li>checkout asset repository</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> /home/share
+</span><span class='line'>git clone git@github.com:dictyBase/dictyAssets.git
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Serve it through nginx</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">## in nginx.conf</span>
+</span><span class='line'>location /assets <span class="o">{</span>
+</span><span class='line'>    <span class="nb">alias</span> /home/share/dictyAssets;
+</span><span class='line'>    expires 30d;
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>open configuration file for each genome and the following code to the header and footer section. For example, in purpureum.conf. Assume nginx is deployed in localhost</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="n">header</span> <span class="o">=</span> <span class="k">sub </span><span class="p">{</span>
+</span><span class='line'>               <span class="k">use</span> <span class="nn">LWP::</span><span class="n">Simple</span><span class="p">;</span>
+</span><span class='line'>               <span class="k">return</span> <span class="nn">LWP::Simple::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;http://localhost/assets/include/purpureum/page-header.html&quot;</span><span class="p">)</span>
+</span><span class='line'>          <span class="p">}</span>
+</span><span class='line'><span class="n">footer</span> <span class="o">=</span> <span class="k">sub </span><span class="p">{</span>
+</span><span class='line'>               <span class="k">use</span> <span class="nn">LWP::</span><span class="n">Simple</span><span class="p">;</span>
+</span><span class='line'>               <span class="k">return</span> <span class="nn">LWP::Simple::</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;http://localhost/assets/include/purpureum/page-footer.html&quot;</span><span class="p">)</span>
+</span><span class='line'>          <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><strong>Note:</strong> Had issue with both LWP::Simple and LWP::UserAgent in getting the response, so switched to HTTP::Tiny</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>cpanm HTTP::Tiny
+</span><span class='line'>
+</span><span class='line'><span class="nv">header</span> <span class="o">=</span> sub <span class="o">{</span>
+</span><span class='line'>               use HTTP::Tiny;
+</span><span class='line'>               my <span class="nv">$resp</span> <span class="o">=</span> HTTP::Tiny-&gt;new-&gt;get<span class="o">(</span><span class="s2">&quot;http://localhost/assets/include/purpureum/page-header.html&quot;</span><span class="o">)</span>;
+</span><span class='line'>               <span class="k">if</span> <span class="o">(</span><span class="nv">$resp</span>-&gt;<span class="o">{</span>success<span class="o">})</span> <span class="o">{</span>
+</span><span class='line'>                  <span class="k">return</span> <span class="nv">$resp</span>-&gt;<span class="o">{</span>content<span class="o">}</span>;
+</span><span class='line'>               <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">footer</span> <span class="o">=</span> sub <span class="o">{</span>
+</span><span class='line'>               use HTTP::Tiny;
+</span><span class='line'>               my <span class="nv">$resp</span> <span class="o">=</span> HTTP::Tiny-&gt;new-&gt;get<span class="o">(</span><span class="s2">&quot;http://localhost/assets/include/purpureum/page-footer.html&quot;</span><span class="o">)</span>;
+</span><span class='line'>               <span class="k">if</span> <span class="o">(</span><span class="nv">$resp</span>-&gt;<span class="o">{</span>success<span class="o">})</span> <span class="o">{</span>
+</span><span class='line'>                  <span class="k">return</span> <span class="nv">$resp</span>-&gt;<span class="o">{</span>content<span class="o">}</span>;
+</span><span class='line'>               <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Run plack</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>plackup  -MLWP::Simple -s FCGI --nproc 10 --listen /tmp/gbrowse.sock --pid /tmp/fcgi_gb2.pid --daemonize <span class="se">\</span>
+</span><span class='line'>                     <span class="nv">$GBROWSE_ROOT</span>/<span class="nv">$GBROWSE_VERSION</span>/conf/GBROWSE.psgi
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Replace LWP::Simple with HTTP::Tiny if needed</p>
+
+  
+    <footer>
+      <p class="meta">
+        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Siddhartha Basu</span></span>
+
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-20T16:16:00-05:00" pubdate data-updated="true">Mar 20<span>th</span>, 2013</time>
+        
+      </p>
+      
+        <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/integrate-dictybase-header-footer-gbrowse2/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/integrate-dictybase-header-footer-gbrowse2/index.html" >Tweet</a>
+  
+  
+  
+</div>
+
+      
+    </footer>
+  
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About </h1>
+  <p>Unofficial blog of dictybase MOD(model organism database) developers.
+  		<br/><a href="/about">More ....</a>
+  </p>
+</section>
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("dictybase", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/dictybase" class="twitter-follow-button" data-show-count="false">Follow @dictybase</a>
+  
+</section>
+
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/dictybase">@dictybase</a> on GitHub
+  
+  <script type="text/javascript">
+    $.domReady(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'dictybase',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - dictyBase Developers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+
+
+</body>
+</html>

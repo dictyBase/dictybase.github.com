@@ -5,12 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Setting up perl environment for development - dictyBase Developers</title>
+  <title>Prepare and loading data for visualizing in gbrowse - dictyBase Developers</title>
   <meta name="author" content="dictyBase Developers">
 
   
-  <meta name="description" content="Setting Up Perl Environment for Development Jun 21st, 2012 Install perlbrew Perlbrew will be used to install and manage different version of
-stable &hellip;">
+  <meta name="description" content="Prepare and Loading Data for Visualizing in Gbrowse Mar 20th, 2013 The scripts in Modware-Loader distribution will be needed for data export and &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +18,7 @@ stable &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://dictyBase.github.com/perl-setup/">
+  <link rel="canonical" href="http://dictyBase.github.com/prepare-data-for-gbrowse-visualization/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -79,7 +78,7 @@ stable &hellip;">
 <article role="article">
   
   <header>
-    <h1 class="entry-title">Setting Up Perl Environment for Development</h1>
+    <h1 class="entry-title">Prepare and Loading Data for Visualizing in Gbrowse</h1>
     <p class="meta">
 
 
@@ -92,101 +91,165 @@ stable &hellip;">
   
 
 
-<time datetime="2012-06-21T12:23:00-05:00" pubdate data-updated="true">Jun 21<span>st</span>, 2012</time></p>
+<time datetime="2013-03-20T16:12:00-05:00" pubdate data-updated="true">Mar 20<span>th</span>, 2013</time></p>
   </header>
   
-  <h3>Install perlbrew</h3>
+  <p>The scripts in Modware-Loader distribution will be needed for data export and format conversions.</p>
 
-<p><a href="http://perlbrew.pl">Perlbrew</a> will be used to install and manage different version of
-stable perl releases. This OS installed perl will be left untouched.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>curl -kL http://install.perlbrew.pl | bash
-</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>First <a href="/install-modware-loader">install</a> Modware-Loader.</li>
+</ul>
 
 
-<p>Then follow the instruction in the screen. The above command will set up perlbrew for
-majority of the cases. For more details of if it fails look  <a href="http://perlbrew.pl/">here</a>.
-For system wide or custom installation look
-<a href="https://metacpan.org/module/perlbrew#CONFIGURATION">here</a>.</p>
+<h3>Export genome annotations in GFF3 format</h3>
 
-<h3>Install perl using perlbrew</h3>
+<p>The annotations are exported from chado oracle database.</p>
 
-<p>By default we use <a href="https://metacpan.org/release/DAPM/perl-5.10.1">perl-5.10.1</a>,  however other versions
-namely perl-5.12.4, perl-5.14.2, perl-5.16.0 will be fine. A simple</p>
+<ul>
+<li>Exporting purpureum genome</li>
+</ul>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew list
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>will show you the list of perls that can be installed.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew install -j 4 perl-5.10.1
-</span><span class='line'>perlbrew <span class="nb">alias </span>create perl-5.10.1 deploy-perl
-</span><span class='line'>perlbrew switch deploy-perl
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; modware-export chado2gff3 --org purpureum --dsn <span class="s1">&#39;dbi:Oracle:host=host;sid=sid&#39;</span> <span class="se">\ </span>
+</span><span class='line'>       -u chado -p chado  -o purpureum.gff3 --extra_gene_model Geneid <span class="se">\ </span>
+</span><span class='line'>        --include_aligned_feature EST --tolerate_missing --include_align_parts
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Install friends of perl</h3>
+<p>The above line exports the <em>Dictyostelium purpureum</em> genome in GFF3 format along with extra <strong>gene models</strong> and <strong>EST</strong> alignment features.
+Many more examples of GFF3 exports are
+<a href="/blog/2013/03/06/exporting-discoideum-annotations">here</a></p>
 
-<p>These are highly recommended modules primarilly to manage dependencies.</p>
+<h3>Including gene products in fasta header</h3>
+
+<ul>
+<li>Download the dictyostelium protein fasta <a href="http://dictybase.org/db/cgi-bin/dictyBase/download/download.pl?area=blast_databases&amp;ID=purpureum_protein.fas.gz">file</a></li>
+<li><a href="https://gist.github.com/2023747">mapgeneid2prod.pl</a> : Produces a map between Gene ID and product name.</li>
+<li><a href="https://gist.github.com/2023749">rewrite_dicty_fasta_header.pl</a> : Rewrite the fasta write to include the product name.</li>
+</ul>
+
+
+<h3>Aligning proteins to other genomes  using tblastn</h3>
+
+<p>Here, for examples,  <em>Dictyostelium discoideum</em> proteins will be aligned to the top level assemblies(supercontigs) of pallidum genome. Detail alignment strategy with refinement is given <a href="/refining-tblastn-protein-alignments">here</a>.</p>
+
+<h3>Loading features from GFF3</h3>
+
+<p>The GFF3 data are going to loaded in Postgresql database using <a href="https://metacpan.org/module/Bio::DB::SeqFeature::Store">BioPerl&#8217;s SeqFeature</a> backend.</p>
+
+<ul>
+<li>Install DBI backend for Postgresql</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>cpanm DBD::Pg
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Note:</strong> Do not set -Darch option while compiling perl with perlbrew, otherwise DBI won&#8217;t get installed</p>
+
+<ul>
+<li>Load data</li>
+</ul>
+
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew install-cpanm
-</span><span class='line'>cpanm -n App::cpanoutdated App::pmuninstall Carton
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>bp_seqfeature_load.pl --dsn <span class="s1">&#39;dbi:Pg:database=purpureum&#39;</span> -a <span class="s1">&#39;DBI::Pg&#39;</span> -u uuser <span class="se">\</span>
+</span><span class='line'>-p passs -f --summary -c purpureum.gff3
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p><strong>Note:</strong> The (-n) option is used for faster module installation as it skips the unit
-testing.
-Look <a href="https://metacpan.org/module/Task::Kensho">here</a> for a list highly recommended
-modules by community used for perl development.</p>
+<p>If you load more feature in the same database just skip the -c options. However,
+if it also complains about feature yet not found in the database then also skip the (-f) option.</p>
 
-<h3>Managing modules</h3>
+<p><strong>Note:</strong> For loading tblastn alignment skip the <strong>-c</strong>, but use the <strong>-f</strong> option.</p>
 
-<h5>Creating sandbox</h5>
+<ul>
+<li>Edit and add database source in gbrowse configuration file.</li>
+</ul>
 
-<p>Always create a project specific local lib environment(sandbox) for managing module dependencies.</p>
+
+<h3>RNA-seq(NGS) alignments data</h3>
+
+<p>The alignments are expected to be in BAM format, if not run any standard NGS alignment pipeline(bowtie etc..) to get the BAM format.</p>
+
+<ul>
+<li>Create a folder under $GBROWSE_ROOT/database</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir -p  <span class="nv">$GBROWSE_ROOT</span>/database/purpureum
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Index the BAM file</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>samtools index file.bam
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><p>Also copy the fasta sequence of reference genome in the same folder</p></li>
+<li><p>Install perl binding for samtools</p></li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>cpanm Bio::DB::Sam
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><strong>Note:</strong> If Bio::DB::Sam install fails, try to do it from source</li>
+</ul>
+
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew lib create project_name
-</span><span class='line'>perlbrew use perl_name@project_name
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  First download<span class="o">(</span>samtools.sf.net<span class="o">)</span> and compile samtools from <span class="nb">source</span>
+</span><span class='line'><span class="nb">cd </span>samtools-&lt;version&gt;/
+</span><span class='line'>make
+</span><span class='line'>  It is fine <span class="k">if </span>it cannot compile tview, it can happen in absense of curses library. It is not needed <span class="k">for </span>the perl module
+</span><span class='line'>
+</span><span class='line'>  Now download Bio::DB::Sam <span class="nb">source</span> <span class="o">(</span>http://metacpan.org/module/Bio::DB::Sam<span class="o">)</span>
+</span><span class='line'><span class="nb">cd </span>Bio-DB-SAM-&lt;version&gt;
+</span><span class='line'><span class="nv">SAMTOOLS</span><span class="o">=</span>&lt;samtools-path&gt; perl Build.PL
+</span><span class='line'>./Build install
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h5>Installation</h5>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew use perl_name@project_name
-</span><span class='line'>cpanm -n some_module_name
-</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>Edit and add the track configuration as described in this <a href="http://gmod.org/wiki/GBrowse_Volvox_SAM_Tutorial">guide</a></li>
+</ul>
 
 
-<h5>Update</h5>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>cpan-outdated -p | cpanm -n
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h5>Uninstall</h5>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pm-uninstall some_module_name
-</span></code></pre></td></tr></table></div></figure>
-
+<h3><strong>Next:</strong> <a href="https://github.com/dictyBase/GBrowse-PSGI/wiki/Integrating-dictyBase-header-and-footer-gbrowse2">Integrate</a> headers and footers with gbrowse</h3>
 
   
     <footer>
       <p class="meta">
         
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Siddhartha Basu</span></span>
+
         
 
 
@@ -199,13 +262,13 @@ modules by community used for perl development.</p>
   
 
 
-<time datetime="2012-06-21T12:23:00-05:00" pubdate data-updated="true">Jun 21<span>st</span>, 2012</time>
+<time datetime="2013-03-20T16:12:00-05:00" pubdate data-updated="true">Mar 20<span>th</span>, 2013</time>
         
       </p>
       
         <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/perl-setup/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/perl-setup/index.html" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/prepare-data-for-gbrowse-visualization/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/prepare-data-for-gbrowse-visualization/index.html" >Tweet</a>
   
   
   

@@ -5,12 +5,17 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Setting up perl environment for development - dictyBase Developers</title>
+  <title>Prepare remote machine for gbrowse2 install - dictyBase Developers</title>
   <meta name="author" content="dictyBase Developers">
 
   
-  <meta name="description" content="Setting Up Perl Environment for Development Jun 21st, 2012 Install perlbrew Perlbrew will be used to install and manage different version of
-stable &hellip;">
+  <meta name="description" content="Prepare Remote Machine for Gbrowse2 Install Mar 20th, 2013 Install packages curl
+gcc
+make
+man
+nginx
+libgd2
+db and db-devel: The berkeley db database &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +24,7 @@ stable &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://dictyBase.github.com/perl-setup/">
+  <link rel="canonical" href="http://dictyBase.github.com/prepare-remote-machine-for-gbrowse2-install/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -79,7 +84,7 @@ stable &hellip;">
 <article role="article">
   
   <header>
-    <h1 class="entry-title">Setting Up Perl Environment for Development</h1>
+    <h1 class="entry-title">Prepare Remote Machine for Gbrowse2 Install</h1>
     <p class="meta">
 
 
@@ -92,101 +97,123 @@ stable &hellip;">
   
 
 
-<time datetime="2012-06-21T12:23:00-05:00" pubdate data-updated="true">Jun 21<span>st</span>, 2012</time></p>
+<time datetime="2013-03-20T15:10:00-05:00" pubdate data-updated="true">Mar 20<span>th</span>, 2013</time></p>
   </header>
   
-  <h3>Install perlbrew</h3>
+  <h3>Install packages</h3>
 
-<p><a href="http://perlbrew.pl">Perlbrew</a> will be used to install and manage different version of
-stable perl releases. This OS installed perl will be left untouched.</p>
+<ul>
+<li>curl</li>
+<li>gcc</li>
+<li>make</li>
+<li>man</li>
+<li>nginx</li>
+<li>libgd2</li>
+<li>db and db-devel: The berkeley db database library</li>
+<li>git</li>
+<li>vim</li>
+<li>postgresql (only the client library should be fine)</li>
+<li>samtools (optional and only if you need to display NGS data with BAM format)</li>
+</ul>
+
+
+<p>For redhat based system, rpm of samtools are <a href="http://pkgs.org/centos-6-rhel-6/epel-i386/samtools-0.1.18-2.el6.i686.rpm.html">available</a> from EPEL repository. Follow the install <a href="http://pkgs.org/centos-6-rhel-6/epel-i386/samtools-0.1.18-2.el6.i686.rpm.html#howto">instructions</a>. You need to install both the libraries and header files.</p>
+
+<h3>Shared folders</h3>
+
+<p>The shared space will have ample space and will host all the checked out code and datasets that are needed for gbrowse2 display. All members within the shared group will have identical privileges inside the shared folder.</p>
+
+<p>Execute the following steps in the remote server as root or preferably as an user with sudo permission.</p>
+
+<p>We are going to setup /home/gbrowse as the shared folder here. Preferably mount this folder in a separate partition with at least 100G of space.</p>
+
+<ul>
+<li>Create folder, add user and shared group(deploy).</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>bash
+</span><span class='line'>$_&gt; sudo mkdir -p /home/gbrowse
+</span><span class='line'>$_&gt; sudo groupadd deploy</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Add users(triton) to this group who need shared access</li>
+</ul>
+
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>curl -kL http://install.perlbrew.pl | bash
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; sudo usermod -a -G deploy triton
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Then follow the instruction in the screen. The above command will set up perlbrew for
-majority of the cases. For more details of if it fails look  <a href="http://perlbrew.pl/">here</a>.
-For system wide or custom installation look
-<a href="https://metacpan.org/module/perlbrew#CONFIGURATION">here</a>.</p>
+<ul>
+<li>Set setgid so every folder created under shared inherit from the parent permission. This means all folder will belong to the deploy group here.</li>
+</ul>
 
-<h3>Install perl using perlbrew</h3>
-
-<p>By default we use <a href="https://metacpan.org/release/DAPM/perl-5.10.1">perl-5.10.1</a>,  however other versions
-namely perl-5.12.4, perl-5.14.2, perl-5.16.0 will be fine. A simple</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew list
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>will show you the list of perls that can be installed.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew install -j 4 perl-5.10.1
-</span><span class='line'>perlbrew <span class="nb">alias </span>create perl-5.10.1 deploy-perl
-</span><span class='line'>perlbrew switch deploy-perl
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; sudo chgrp deploy gbrowse
+</span><span class='line'><span class="nv">$_</span>&gt; sudo chmod g+w gbrowse
+</span><span class='line'><span class="nv">$_</span>&gt; sudo chmod g+s gbrowse
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Install friends of perl</h3>
+<ul>
+<li>Setup acl so that all files and folders created under that shared space maintain uniform group privileges</li>
+</ul>
 
-<p>These are highly recommended modules primarilly to manage dependencies.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; sudo yum -y install acl <span class="o">(</span><span class="k">for </span>redhat<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Edit /etc/fstab and remount</li>
+</ul>
+
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew install-cpanm
-</span><span class='line'>cpanm -n App::cpanoutdated App::pmuninstall Carton
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; sudo vi /etc/fstab
+</span><span class='line'>  add the acl entry                           VVV
+</span><span class='line'><span class="nv">$_</span>&gt; /dev/sdb1  /home/gbrowse   ext4  defaults,acl    1 2
+</span><span class='line'><span class="nv">$_</span>&gt; sudo mount /home/gbrowse -o remount
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p><strong>Note:</strong> The (-n) option is used for faster module installation as it skips the unit
-testing.
-Look <a href="https://metacpan.org/module/Task::Kensho">here</a> for a list highly recommended
-modules by community used for perl development.</p>
+<ul>
+<li>Enable acl. First remove the default if any and then apply the new one.</li>
+</ul>
 
-<h3>Managing modules</h3>
-
-<h5>Creating sandbox</h5>
-
-<p>Always create a project specific local lib environment(sandbox) for managing module dependencies.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew lib create project_name
-</span><span class='line'>perlbrew use perl_name@project_name
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$_</span>&gt; sudo setfacl -k -b gbrowse
+</span><span class='line'><span class="nv">$_</span>&gt; sudo setfacl -d -m u::rwx,g::rwx,o::r-- gbrowse
 </span></code></pre></td></tr></table></div></figure>
 
 
-<h5>Installation</h5>
+<p>The default(-d) flag applies to directories and it sets the default acl for all newly created folders and files.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>perlbrew use perl_name@project_name
-</span><span class='line'>cpanm -n some_module_name
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h5>Update</h5>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>cpan-outdated -p | cpanm -n
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h5>Uninstall</h5>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>pm-uninstall some_module_name
-</span></code></pre></td></tr></table></div></figure>
-
+<h3>Next: Install <a href="/psgi-gbrowse2">gbrowse2</a></h3>
 
   
     <footer>
       <p class="meta">
         
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Siddhartha Basu</span></span>
+
         
 
 
@@ -199,13 +226,13 @@ modules by community used for perl development.</p>
   
 
 
-<time datetime="2012-06-21T12:23:00-05:00" pubdate data-updated="true">Jun 21<span>st</span>, 2012</time>
+<time datetime="2013-03-20T15:10:00-05:00" pubdate data-updated="true">Mar 20<span>th</span>, 2013</time>
         
       </p>
       
         <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/perl-setup/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/perl-setup/index.html" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/prepare-remote-machine-for-gbrowse2-install/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/prepare-remote-machine-for-gbrowse2-install/index.html" >Tweet</a>
   
   
   
