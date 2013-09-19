@@ -74,6 +74,9 @@ while(my $data_row = $iter->next) {
     }
 }
 ```
+
+### Helpers
+
 In addition, we also need some helper classes that could have the following responsibilities:
 
 
@@ -114,7 +117,8 @@ find_or_create_cvterm_namespace
 ```
 
 
-* Data transformation.
+* __Data transformations__: There are few methods needed here and there, however currently
+  they are private to the other helpers. Still nothing there which stands out.
 
 However, these are not set in stone and there could be handful of __helper__ classes. And it depends on the __manager__ 
 class which one it needs to consume. But its important to share the helper classes for different backend 
