@@ -4,7 +4,7 @@
   <title><![CDATA[dictyBase Developers]]></title>
   <link href="http://dictyBase.github.com/atom.xml" rel="self"/>
   <link href="http://dictyBase.github.com/"/>
-  <updated>2013-03-21T14:32:22-05:00</updated>
+  <updated>2013-10-03T10:42:40-05:00</updated>
   <id>http://dictyBase.github.com/</id>
   <author>
     <name><![CDATA[dictyBase Developers]]></name>
@@ -12,6 +12,262 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Design pattern of chado database loaders]]></title>
+    <link href="http://dictyBase.github.com/blog/2013/09/18/chado-loader-design/"/>
+    <updated>2013-09-18T13:44:00-05:00</updated>
+    <id>http://dictyBase.github.com/blog/2013/09/18/chado-loader-design</id>
+    <content type="html"><![CDATA[<h1>Preamble</h1>
+
+<p>This is more or less my thoughts about how to structure a bulk loader for chado.
+Majority of the ideas come from writing <code>obo2chado</code> loader. <strong>obo2chado</strong> still lack the design that
+i am aiming now, but most of the upcoming one will follow that. And the future idea is to refactor the <code>obo</code> loader to that mold.</p>
+
+<h1>Design</h1>
+
+<h2>Scope and expectation</h2>
+
+<ul>
+<li>The input would be some sort of flat file.</li>
+<li>The data will be loaded to a relational backend. It could definitely be generalized, but at this moment it is not considered.</li>
+</ul>
+
+
+<h2>Reading data</h2>
+
+<p>There should be an object oriented interface for reading data from flat files. That object is expected to be passed
+along to other classes. For example, for <code>obo2chado</code> loader i have used the <a href="https://metacpan.org/release/ONTO-PERL">ONTO-Perl</a> module.</p>
+
+<h2>Database interaction</h2>
+
+<p>Probably one of the import one. It&rsquo;s better to have an ORM that supports mutiple backends and bulk loading support. For Perl
+code, i have used <a href="https://metacpan.org/module/Bio::Chado::Schema">BCS</a> a <code>DBIx::Class</code> class layer for <strong>chado</strong> database.</p>
+
+<h2>Loading in the staging area</h2>
+
+<p>This part is supposed to get data from flat file to temp tables of RDBMS. To start with, lets assign a class which
+will manage everything related to this task. First lets figure out what kind of information the class needs in order to perform those tasks.
+For the sake of understaing we name it as <code>StagingManager</code> &hellip;.</p>
+
+<h3>Staging manager</h3>
+
+<p><img src="http://dictyBase.github.com/images/staging_manager.png"></p>
+
+<h4>Attributes</h4>
+
+<ul>
+<li><strong>schema:</strong> Should have an instance of <code>Bio::Chado::Schema</code>. A ORM/Database object for all database centric tasks.
+If its an <strong>ORM</strong>, then it should better provide access to
+some bulk mode operation or at least low level objects for bulk support.</li>
+<li><strong>chunk_threshold:</strong> I kind of thrown this in, it will be used for bulk loading in chunk.</li>
+<li><strong>sqlmanager:</strong> Should have an instance of <code>SQL::Lib</code>. A class that manages handling of sql statements. I found it easy to manage instead of
+inlining it in the class itself. With growing sql statments, it could become
+cumbersome to navigate through code. Provides better separation between code and
+non-code content. For <code>obo2chado</code>, i have used
+<a href="https://metacpan.org/module/SQL::Library">SQL::Library</a> module, seems to be a very
+good choice.</li>
+<li><strong>logger:</strong> An instance of an logger.</li>
+</ul>
+
+
+<!-- more -->
+
+
+<h4>Methods</h4>
+
+<ul>
+<li><strong>create_tables:</strong> Create temporary tables.</li>
+<li><strong>create_indexes:</strong> Create indexes/constraints in temp tables as necessary.</li>
+<li><strong>drop_tables:</strong> Drop temp tables if necessary(probably not needed).</li>
+<li><strong>bulk_load:</strong> Load data in those temp tables, should be in bulk mode. If there are multiple data sections going to different
+temp tables and they are independent then loading could be <strong>parallalized</strong>. This method
+is expected to be backend specific, so for example for <em>postgresql</em> backend, we used
+<strong>COPY</strong> command to load the data.</li>
+<li><strong>add_data:</strong> This would be more or less to add a row of <code>data_object</code> to the manager. It will cache the data unless
+it is above threshold and <code>load_data</code> is invoked.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="k">my</span> <span class="nv">$iter</span> <span class="o">=</span> <span class="nv">$data_file</span><span class="o">-&gt;</span><span class="n">iterator</span><span class="p">;</span>
+</span><span class='line'><span class="k">while</span><span class="p">(</span><span class="k">my</span> <span class="nv">$data_row</span> <span class="o">=</span> <span class="nv">$iter</span><span class="o">-&gt;</span><span class="k">next</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nv">$staging_loader</span><span class="o">-&gt;</span><span class="n">add_data</span><span class="p">(</span><span class="nv">$data_row</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="nv">$staging_loader</span><span class="o">-&gt;</span><span class="n">entries_in_cache</span> <span class="o">&gt;</span> <span class="nv">$staging_loader</span><span class="o">-&gt;</span><span class="n">cache_threshold</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nv">$staging_loader</span><span class="o">-&gt;</span><span class="n">bulk_load</span><span class="p">;</span>
+</span><span class='line'>        <span class="nv">$staging_loader</span><span class="o">-&gt;</span><span class="n">clear_cache</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Remember, there will be a separate manager class for each backend. However, they should share a identical <strong>interface</strong>.</p>
+
+<p>And then the common attributes and methods are then put into an interface <em>role</em> which
+any staging loader have to consume and implement.</p>
+
+<h3>Helpers</h3>
+
+<p>In addition, we also need some helper classes that could have the following responsibilities:</p>
+
+<ul>
+<li><strong>Managing data caches:</strong> It could be any implementation that provides a temporary storage. So, far i have used a simple in memory array for <code>ob2chado</code> loader.
+It is implemented as a <strong>parametric</strong> Moose <a href="https://github.com/dictyBase/Modware-Loader/blob/develop/lib/Modware/Role/WithDataStash.pm">Role</a>.
+Consume that role in a Moose class..</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">package</span> <span class="n">Myclass</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="nn">Moose::</span><span class="n">Role</span><span class="p">;</span>
+</span><span class='line'><span class="n">with</span> <span class="s">&#39;Modware::Role::WithDataStash&#39;</span> <span class="o">=&gt;</span>
+</span><span class='line'>    <span class="p">{</span> <span class="n">create_stash_for</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="sx">qw/term comment/</span><span class="p">]</span> <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The above will import four methods/element making a total of 8 methods in the class.
+For term it will import &hellip;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="n">add_to_term_cache</span>
+</span><span class='line'><span class="n">clean_term_cache</span>
+</span><span class='line'><span class="n">entries_in_term_cache</span>
+</span><span class='line'><span class="n">count_entries_in_term_cache</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The use will be very simple&hellip;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">add_to_term_cache</span><span class="p">(</span><span class="nv">$term</span><span class="p">);</span>
+</span><span class='line'><span class="n">say</span> <span class="nv">$self</span><span class="o">-&gt;</span><span class="n">count_entries_in_term_cache</span><span class="p">;</span>
+</span><span class='line'><span class="k">for</span> <span class="k">my</span> <span class="nv">$term</span><span class="p">(</span><span class="nv">$self</span><span class="o">-&gt;</span><span class="n">entries_in_term_cache</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="o">.......</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><strong>Basic CRUD for database:</strong> It is absolutely chado specific pattern where four tables <strong>cv</strong>,<strong>cvterm</strong>, <strong>dbxref</strong> and <strong>db</strong>
+are frequently reused. Here is one of the <a href="https://github.com/dictyBase/Modware-Loader/blob/develop/lib/Modware/Loader/Role/Ontology/WithHelper.pm">implementation</a>.
+It provides bunch of reusable methods that  mostly works on one of the four tables
+mentioned earlier&hellip;</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="n">find_or_create_dbrow</span>
+</span><span class='line'><span class="n">find_or_create_cvrow</span>
+</span><span class='line'><span class="n">find_or_create_cvterm_namespace</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><strong>Data transformations</strong>: There are few methods needed here and there, however currently
+they are private to the other helpers. Still nothing there which stands out.</li>
+</ul>
+
+
+<p>However, these are not set in stone and there could be handful of <strong>helper</strong> classes. And it depends on the <strong>manager</strong>
+class which one it needs to consume. But its important to share the helper classes for different backend
+specific <strong>manager</strong> class. So, all the helper classes should have a defined interface.</p>
+
+<h2>Loading into chado from staging</h2>
+
+<p>Quite obviously, the responsible entity(or class) will transfer the data to the actual
+tables in chado database. Lets get down to the interface &hellip;.</p>
+
+<p><img src="http://dictyBase.github.com/images/chado_manager.png"></p>
+
+<h3>Attributes</h3>
+
+<ul>
+<li><strong>schema</strong>: Mentioned earlier.</li>
+<li><strong>sqlmanager:</strong> Similarly, mentioned earlier.</li>
+</ul>
+
+
+<h3>Methods</h3>
+
+<ul>
+<li><strong>alter_tables</strong>: To prepare chado tables for bulk load, such as disabling indexes
+and/or foreign keys etc, if needed.</li>
+<li><strong>bulk_load:</strong> This method generally runs a series of all <em>sql</em> statements to do the
+actual data loading.</li>
+<li><strong>reset_tables</strong>: Should reset the chado tables to its pristine states if the
+&#8220;alter_tables&#8220;` method did any change. Also any other procedure.</li>
+<li><strong>logger:</strong> An instance of an logger.</li>
+</ul>
+
+
+<p>The methods should run in the following order &hellip;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="n">alter_tables</span>
+</span><span class='line'><span class="n">bulk_load</span>
+</span><span class='line'><span class="n">reset_tables</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This loading phase should run after the staging as it needs data from staging tables. As
+usual, the methods and attributes should be wrapped around a generic interface <em>role</em>.</p>
+
+<h2>The loader itself</h2>
+
+<p>The loader would be provide a command line/webapp interface that basically coordinate
+these managers(both staging and chado) to load it. The loader frontend also ensures that
+all the steps are executed in order. Here&rsquo;s how the software stack interacts with each
+other.</p>
+
+<p><img src="http://dictyBase.github.com/images/loader_stack.png"></p>
+
+<ul>
+<li>The loader frontend only has direct interaction with the flat file, however it does
+not have any connection with storage backend. It does also interacts with both the
+managers.</li>
+<li>Staging manager interacts with only temp storage whereas Chado manager interacts with
+both storages. However, the managers are completely decoupled.</li>
+</ul>
+
+
+<p>The diagram below shows data flow where it goes from the flat file to the chado
+database.</p>
+
+<p><img src="http://dictyBase.github.com/images/loader_dataflow.png"></p>
+
+<ul>
+<li>The data get pushed by the frontend to the <code>Stagingmanager</code> and then into staging
+tables.</li>
+<li>The <code>Chadomanager</code> then pulls it from staging table and push it to the chado
+database.</li>
+</ul>
+
+
+<p>For an implementation of this pattern look at perl based <code>oboclosoure2chado</code>
+<a href="https://github.com/dictyBase/Modware-Loader/blob/develop/lib/Modware/Load/Command/oboclosure2chado.pm">command</a>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Exporting D.discoideum annotations in GFF3 format]]></title>
@@ -91,7 +347,7 @@ and promoters. Exports are done by the <strong>export</strong> subcommand of Mod
 <!-- more -->
 
 
-<p>All exports are done with <strong>&#8211;feature_name</strong> options that exports the <strong>name</strong> of
+<p>All exports are done with <strong>&mdash;feature_name</strong> options that exports the <strong>name</strong> of
 reference feature in GFF3 column 1.</p>
 
 <h3>Canonical</h3>
@@ -151,7 +407,7 @@ models take precedence.</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>To dump only a particular chromosome(reference feature) pass either a name or id in the <strong>&#8211;reference_id</strong>
+<p>To dump only a particular chromosome(reference feature) pass either a name or id in the <strong>&mdash;reference_id</strong>
 option.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -371,7 +627,7 @@ reprediction pipeline.</p>
     <id>http://dictyBase.github.com/blog/2012/05/28/taming-the-gff3</id>
     <content type="html"><![CDATA[<p>dictyBase <a href="http://dictybase.org/download/gff3/dicty_gff3.zip">GFF3</a> has developed
 bunch of rough edges over the years and so do not plays well with third
-party tools. Here are the issues that we are aware of&#8230;</p>
+party tools. Here are the issues that we are aware of&hellip;</p>
 
 <h2>Known Issues</h2>
 

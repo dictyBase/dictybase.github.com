@@ -9,10 +9,8 @@
   <meta name="author" content="dictyBase Developers">
 
   
-  <meta name="description" content="Prerequisites Install modware loader from github.
-With a latest cpanm (>1.6), it can be
-also directly installed from github 1
-$_&gt; cpanm git:// &hellip;">
+  <meta name="description" content="Preamble This is more or less my thoughts about how to structure a bulk loader for chado.
+Majority of the ideas come from writing obo2chado loader. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,13 +19,14 @@ $_&gt; cpanm git:// &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://dictyBase.github.com/">
+  <link rel="canonical" href="http://dictyBase.github.com">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
@@ -79,6 +78,98 @@ $_&gt; cpanm git:// &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/09/18/chado-loader-design/">Design Pattern of Chado Database Loaders</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-18T13:44:00-05:00" pubdate data-updated="true">Sep 18<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Preamble</h1>
+
+<p>This is more or less my thoughts about how to structure a bulk loader for chado.
+Majority of the ideas come from writing <code>obo2chado</code> loader. <strong>obo2chado</strong> still lack the design that
+i am aiming now, but most of the upcoming one will follow that. And the future idea is to refactor the <code>obo</code> loader to that mold.</p>
+
+<h1>Design</h1>
+
+<h2>Scope and expectation</h2>
+
+<ul>
+<li>The input would be some sort of flat file.</li>
+<li>The data will be loaded to a relational backend. It could definitely be generalized, but at this moment it is not considered.</li>
+</ul>
+
+
+<h2>Reading data</h2>
+
+<p>There should be an object oriented interface for reading data from flat files. That object is expected to be passed
+along to other classes. For example, for <code>obo2chado</code> loader i have used the <a href="https://metacpan.org/release/ONTO-PERL">ONTO-Perl</a> module.</p>
+
+<h2>Database interaction</h2>
+
+<p>Probably one of the import one. It&rsquo;s better to have an ORM that supports mutiple backends and bulk loading support. For Perl
+code, i have used <a href="https://metacpan.org/module/Bio::Chado::Schema">BCS</a> a <code>DBIx::Class</code> class layer for <strong>chado</strong> database.</p>
+
+<h2>Loading in the staging area</h2>
+
+<p>This part is supposed to get data from flat file to temp tables of RDBMS. To start with, lets assign a class which
+will manage everything related to this task. First lets figure out what kind of information the class needs in order to perform those tasks.
+For the sake of understaing we name it as <code>StagingManager</code> &hellip;.</p>
+
+<h3>Staging manager</h3>
+
+<p><img src="/images/staging_manager.png"></p>
+
+<h4>Attributes</h4>
+
+<ul>
+<li><strong>schema:</strong> Should have an instance of <code>Bio::Chado::Schema</code>. A ORM/Database object for all database centric tasks.
+If its an <strong>ORM</strong>, then it should better provide access to
+some bulk mode operation or at least low level objects for bulk support.</li>
+<li><strong>chunk_threshold:</strong> I kind of thrown this in, it will be used for bulk loading in chunk.</li>
+<li><strong>sqlmanager:</strong> Should have an instance of <code>SQL::Lib</code>. A class that manages handling of sql statements. I found it easy to manage instead of
+inlining it in the class itself. With growing sql statments, it could become
+cumbersome to navigate through code. Provides better separation between code and
+non-code content. For <code>obo2chado</code>, i have used
+<a href="https://metacpan.org/module/SQL::Library">SQL::Library</a> module, seems to be a very
+good choice.</li>
+<li><strong>logger:</strong> An instance of an logger.</li>
+</ul>
+
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/09/18/chado-loader-design/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -219,7 +310,7 @@ and promoters. Exports are done by the <strong>export</strong> subcommand of Mod
 
   <div class="entry-content"><p>dictyBase <a href="http://dictybase.org/download/gff3/dicty_gff3.zip">GFF3</a> has developed
 bunch of rough edges over the years and so do not plays well with third
-party tools. Here are the issues that we are aware of&#8230;</p>
+party tools. Here are the issues that we are aware of&hellip;</p>
 
 <h2>Known Issues</h2>
 
@@ -283,7 +374,7 @@ no easy way to identify the primary gene models.</li>
   <a href="https://github.com/dictybase">@dictybase</a> on GitHub
   
   <script type="text/javascript">
-    $.domReady(function(){
+    $(document).ready(function(){
         if (!window.jXHR){
             var jxhr = document.createElement('script');
             jxhr.type = 'text/javascript';
@@ -308,11 +399,15 @@ no easy way to identify the primary gene models.</li>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+        <a href="/blog/2013/09/18/chado-loader-design/">Design Pattern of Chado Database Loaders</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum Annotations in GFF3 Format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the Dictybase GFF3</a>
       </li>
     
   </ul>
@@ -342,7 +437,7 @@ no easy way to identify the primary gene models.</li>
       var twitterWidgets = document.createElement('script');
       twitterWidgets.type = 'text/javascript';
       twitterWidgets.async = true;
-      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
       document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
     })();
   </script>

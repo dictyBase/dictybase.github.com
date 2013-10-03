@@ -18,13 +18,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://dictyBase.github.com/refining-tblastn-protein-alignments/">
+  <link rel="canonical" href="http://dictyBase.github.com/refining-tblastn-protein-alignments">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
@@ -96,7 +97,7 @@
   
   <p>Tblastn alignments needs to be refined as they do not properly align around exon intron
 boundaries,  group hsps wide apart,  also might get aligned to the repeat regions. The
-approach would be &#8230;</p>
+approach would be &hellip;</p>
 
 <ul>
 <li>Align against a repeat masked database.</li>
@@ -130,7 +131,7 @@ approach would be &#8230;</p>
 
 <h3>Run tblastn</h3>
 
-<p>It&#8217;s a mapping protocol, so the search is expected to be on the insensitive side. The parameters are going to be selected to make the search as stringent as possible without loosing the top alignments.</p>
+<p>It&rsquo;s a mapping protocol, so the search is expected to be on the insensitive side. The parameters are going to be selected to make the search as stringent as possible without loosing the top alignments.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -173,7 +174,7 @@ approach would be &#8230;</p>
 
 
 <p>Because of the nature of the blast statistics, blast aligns wherever it can. As a result, it has multiple alignments in the same region, sometimes the aligned regions are out of order and for translated blast it also extends through stop codons.
-So, bunch of filtering options are used during the above conversion &#8230;</p>
+So, bunch of filtering options are used during the above conversion &hellip;</p>
 
 <p><strong>max_intron_length:</strong> 3000 bp. It is the maximum distance(in bp) allowed between two consecutive hsps(High scoring pair) of a tblastn hit. Since, blast statistics do not account for splice junctions or exon intron models, it tends to group hsps that are far apart in the genome.  This option split hsps(into separate hit groups) that are more than <em>max_intron_length</em> apart. The maximum intron length (<code>3000 bp</code>)  is calculated from the multi exonic gene models(curated and predicted) of various dictyostelids(discoideum,purpureum,fasciculatum and pallidum).</p>
 
@@ -217,7 +218,7 @@ So, bunch of filtering options are used during the above conversion &#8230;</p>
       
         <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/refining-tblastn-protein-alignments/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/refining-tblastn-protein-alignments/index.html" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/refining-tblastn-protein-alignments/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/refining-tblastn-protein-alignments/index.html" >Tweet</a>
   
   
   
@@ -265,7 +266,7 @@ So, bunch of filtering options are used during the above conversion &#8230;</p>
   <a href="https://github.com/dictybase">@dictybase</a> on GitHub
   
   <script type="text/javascript">
-    $.domReady(function(){
+    $(document).ready(function(){
         if (!window.jXHR){
             var jxhr = document.createElement('script');
             jxhr.type = 'text/javascript';
@@ -290,11 +291,15 @@ So, bunch of filtering options are used during the above conversion &#8230;</p>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+        <a href="/blog/2013/09/18/chado-loader-design/">Design Pattern of Chado Database Loaders</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum Annotations in GFF3 Format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the Dictybase GFF3</a>
       </li>
     
   </ul>
@@ -325,7 +330,7 @@ So, bunch of filtering options are used during the above conversion &#8230;</p>
       var twitterWidgets = document.createElement('script');
       twitterWidgets.type = 'text/javascript';
       twitterWidgets.async = true;
-      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
       document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
     })();
   </script>

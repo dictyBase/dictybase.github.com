@@ -9,8 +9,8 @@
   <meta name="author" content="dictyBase Developers">
 
   
-  <meta name="description" content="Blog Archive 2013 Exporting D.discoideum annotations in GFF3 format
-Mar 06 2013 posted in Annotation, GFF3, Genome, Modware-Loader, Perl 2012 Taming &hellip;">
+  <meta name="description" content="Blog Archive 2013 Design pattern of chado database loaders
+Sep 18 2013 posted in chado, database, design, loader Exporting D.discoideum annotations &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,13 +19,14 @@ Mar 06 2013 posted in Annotation, GFF3, Genome, Modware-Loader, Perl 2012 Taming
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://dictyBase.github.com/blog/archives/">
+  <link rel="canonical" href="http://dictyBase.github.com/blog/archives">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
@@ -89,6 +90,20 @@ Mar 06 2013 posted in Annotation, GFF3, Genome, Modware-Loader, Perl 2012 Taming
 
   
   <h2>2013</h2>
+
+<article>
+  
+<h1><a href="/blog/2013/09/18/chado-loader-design/">Design pattern of chado database loaders</a></h1>
+<time datetime="2013-09-18T13:44:00-05:00" pubdate><span class='month'>Sep</span> <span class='day'>18</span> <span class='year'>2013</span></time>
+
+<footer>
+  <span class="categories">posted in <a class='category' href='/blog/categories/chado/'>chado</a>, <a class='category' href='/blog/categories/database/'>database</a>, <a class='category' href='/blog/categories/design/'>design</a>, <a class='category' href='/blog/categories/loader/'>loader</a></span>
+</footer>
+
+
+</article>
+
+
 
 <article>
   
@@ -161,7 +176,7 @@ Mar 06 2013 posted in Annotation, GFF3, Genome, Modware-Loader, Perl 2012 Taming
   <a href="https://github.com/dictybase">@dictybase</a> on GitHub
   
   <script type="text/javascript">
-    $.domReady(function(){
+    $(document).ready(function(){
         if (!window.jXHR){
             var jxhr = document.createElement('script');
             jxhr.type = 'text/javascript';
@@ -186,11 +201,15 @@ Mar 06 2013 posted in Annotation, GFF3, Genome, Modware-Loader, Perl 2012 Taming
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+        <a href="/blog/2013/09/18/chado-loader-design/">Design Pattern of Chado Database Loaders</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum Annotations in GFF3 Format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the Dictybase GFF3</a>
       </li>
     
   </ul>
@@ -221,7 +240,7 @@ Mar 06 2013 posted in Annotation, GFF3, Genome, Modware-Loader, Perl 2012 Taming
       var twitterWidgets = document.createElement('script');
       twitterWidgets.type = 'text/javascript';
       twitterWidgets.async = true;
-      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
       document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
     })();
   </script>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Gene model | dictyBase Developers]]></title>
   <link href="http://dictyBase.github.com/blog/categories/gene-model/atom.xml" rel="self"/>
   <link href="http://dictyBase.github.com/"/>
-  <updated>2013-03-21T14:32:22-05:00</updated>
+  <updated>2013-10-03T10:42:40-05:00</updated>
   <id>http://dictyBase.github.com/</id>
   <author>
     <name><![CDATA[dictyBase Developers]]></name>
@@ -20,7 +20,7 @@
     <id>http://dictyBase.github.com/blog/2012/05/28/taming-the-gff3</id>
     <content type="html"><![CDATA[<p>dictyBase <a href="http://dictybase.org/download/gff3/dicty_gff3.zip">GFF3</a> has developed
 bunch of rough edges over the years and so do not plays well with third
-party tools. Here are the issues that we are aware of...</p>
+party tools. Here are the issues that we are aware of&hellip;</p>
 
 <h2>Known Issues</h2>
 

@@ -2,74 +2,82 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://dictyBase.github.com/blog/2012/05/28/taming-the-gff3/</loc>
-        <lastmod>2013-03-07T14:50:32-06:00</lastmod>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
     </url>
     <url>
         <loc>http://dictyBase.github.com/blog/2013/03/06/exporting-discoideum-annotations/</loc>
-        <lastmod>2013-03-20T15:09:07-05:00</lastmod>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
     </url>
     <url>
-        <loc>http://dictyBase.github.com/about/</loc>
-        <lastmod>2012-10-30T15:08:08-05:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/blog/archives/</loc>
-        <lastmod>2013-03-20T15:09:07-05:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/</loc>
-        <lastmod>2013-03-20T15:09:07-05:00</lastmod>
+        <loc>http://dictyBase.github.com/blog/2013/09/18/chado-loader-design/</loc>
+        <lastmod>2013-10-03T10:42:39-05:00</lastmod>
     </url>
     <url>
         <loc>http://dictyBase.github.com/install-modware-loader/</loc>
-        <lastmod>2013-03-21T14:00:12-05:00</lastmod>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
     </url>
     <url>
-        <loc>http://dictyBase.github.com/integrate-dictybase-header-footer-gbrowse2/</loc>
-        <lastmod>2013-03-21T14:00:07-05:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/obo-loader/</loc>
-        <lastmod>2012-12-03T16:59:23-06:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/obo-loading/</loc>
-        <lastmod>2012-12-04T13:32:29-06:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/pages/documentation/</loc>
-        <lastmod>2013-03-21T14:32:21-05:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/pages.html</loc>
-        <lastmod>2013-03-21T14:25:31-05:00</lastmod>
+        <loc>http://dictyBase.github.com/robots.txt</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
     </url>
     <url>
         <loc>http://dictyBase.github.com/perl-setup/</loc>
-        <lastmod>2012-10-30T15:08:08-05:00</lastmod>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
     </url>
     <url>
-        <loc>http://dictyBase.github.com/prepare-data-for-gbrowse-visualization/</loc>
-        <lastmod>2013-03-21T14:00:02-05:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/prepare-remote-machine-for-gbrowse2-install/</loc>
-        <lastmod>2013-03-21T13:59:10-05:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/psgi-gbrowse2/</loc>
-        <lastmod>2013-03-21T14:00:26-05:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/refining-tblastn-protein-alignments/</loc>
-        <lastmod>2013-03-21T14:00:20-05:00</lastmod>
-    </url>
-    <url>
-        <loc>http://dictyBase.github.com/setup-remote-machine-for-deployment/</loc>
-        <lastmod>2013-03-21T14:00:44-05:00</lastmod>
+        <loc>http://dictyBase.github.com/pages/documentation/</loc>
+        <lastmod>2013-10-03T10:42:39-05:00</lastmod>
     </url>
     <url>
         <loc>http://dictyBase.github.com/todo-list/</loc>
-        <lastmod>2012-10-30T15:08:08-05:00</lastmod>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/refining-tblastn-protein-alignments/</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/setup-remote-machine-for-deployment/</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/prepare-remote-machine-for-gbrowse2-install/</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/prepare-data-for-gbrowse-visualization/</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/obo-loader/</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/pages.html</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/obo-loading/</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/integrate-dictybase-header-footer-gbrowse2/</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/blog/archives/</loc>
+        <lastmod>2013-10-03T10:42:39-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/psgi-gbrowse2/</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/</loc>
+        <lastmod>2013-10-03T10:42:39-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/about/</loc>
+        <lastmod>2013-09-18T12:32:37-05:00</lastmod>
     </url>
 </urlset>

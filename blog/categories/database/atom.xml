@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: database | dictyBase Developers]]></title>
+  <link href="http://dictyBase.github.com/blog/categories/database/atom.xml" rel="self"/>
+  <link href="http://dictyBase.github.com/"/>
+  <updated>2013-10-03T10:42:40-05:00</updated>
+  <id>http://dictyBase.github.com/</id>
+  <author>
+    <name><![CDATA[dictyBase Developers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Design pattern of chado database loaders]]></title>
+    <link href="http://dictyBase.github.com/blog/2013/09/18/chado-loader-design/"/>
+    <updated>2013-09-18T13:44:00-05:00</updated>
+    <id>http://dictyBase.github.com/blog/2013/09/18/chado-loader-design</id>
+    <content type="html"><![CDATA[<h1>Preamble</h1>
+
+<p>This is more or less my thoughts about how to structure a bulk loader for chado.
+Majority of the ideas come from writing <code>obo2chado</code> loader. <strong>obo2chado</strong> still lack the design that
+i am aiming now, but most of the upcoming one will follow that. And the future idea is to refactor the <code>obo</code> loader to that mold.</p>
+
+<h1>Design</h1>
+
+<h2>Scope and expectation</h2>
+
+<ul>
+<li>The input would be some sort of flat file.</li>
+<li>The data will be loaded to a relational backend. It could definitely be generalized, but at this moment it is not considered.</li>
+</ul>
+
+
+<h2>Reading data</h2>
+
+<p>There should be an object oriented interface for reading data from flat files. That object is expected to be passed
+along to other classes. For example, for <code>obo2chado</code> loader i have used the <a href="https://metacpan.org/release/ONTO-PERL">ONTO-Perl</a> module.</p>
+
+<h2>Database interaction</h2>
+
+<p>Probably one of the import one. It&rsquo;s better to have an ORM that supports mutiple backends and bulk loading support. For Perl
+code, i have used <a href="https://metacpan.org/module/Bio::Chado::Schema">BCS</a> a <code>DBIx::Class</code> class layer for <strong>chado</strong> database.</p>
+
+<h2>Loading in the staging area</h2>
+
+<p>This part is supposed to get data from flat file to temp tables of RDBMS. To start with, lets assign a class which
+will manage everything related to this task. First lets figure out what kind of information the class needs in order to perform those tasks.
+For the sake of understaing we name it as <code>StagingManager</code> &hellip;.</p>
+
+<h3>Staging manager</h3>
+
+<p><img src="/images/staging_manager.png"></p>
+
+<h4>Attributes</h4>
+
+<ul>
+<li><strong>schema:</strong> Should have an instance of <code>Bio::Chado::Schema</code>. A ORM/Database object for all database centric tasks.
+If its an <strong>ORM</strong>, then it should better provide access to
+some bulk mode operation or at least low level objects for bulk support.</li>
+<li><strong>chunk_threshold:</strong> I kind of thrown this in, it will be used for bulk loading in chunk.</li>
+<li><strong>sqlmanager:</strong> Should have an instance of <code>SQL::Lib</code>. A class that manages handling of sql statements. I found it easy to manage instead of
+inlining it in the class itself. With growing sql statments, it could become
+cumbersome to navigate through code. Provides better separation between code and
+non-code content. For <code>obo2chado</code>, i have used
+<a href="https://metacpan.org/module/SQL::Library">SQL::Library</a> module, seems to be a very
+good choice.</li>
+<li><strong>logger:</strong> An instance of an logger.</li>
+</ul>
+
+
+<!-- more -->
+
+
+<h4>Methods</h4>
+
+<ul>
+<li><strong>create_tables:</strong> Create temporary tables.</li>
+<li><strong>create_indexes:</strong> Create indexes/constraints in temp tables as necessary.</li>
+<li><strong>drop_tables:</strong> Drop temp tables if necessary(probably not needed).</li>
+<li><strong>bulk_load:</strong> Load data in those temp tables, should be in bulk mode. If there are multiple data sections going to different
+temp tables and they are independent then loading could be <strong>parallalized</strong>. This method
+is expected to be backend specific, so for example for <em>postgresql</em> backend, we used
+<strong>COPY</strong> command to load the data.</li>
+<li><strong>add_data:</strong> This would be more or less to add a row of <code>data_object</code> to the manager. It will cache the data unless
+it is above threshold and <code>load_data</code> is invoked.
+<code>perl
+my $iter = $data_file-&gt;iterator;
+while(my $data_row = $iter-&gt;next) {
+  $staging_loader-&gt;add_data($data_row);
+  if ($staging_loader-&gt;entries_in_cache &gt; $staging_loader-&gt;cache_threshold) {
+      $staging_loader-&gt;bulk_load;
+      $staging_loader-&gt;clear_cache;
+  }
+}
+</code>
+Remember, there will be a separate manager class for each backend. However, they should share a identical <strong>interface</strong>.</li>
+</ul>
+
+
+<p>And then the common attributes and methods are then put into an interface <em>role</em> which
+any staging loader have to consume and implement.</p>
+
+<h3>Helpers</h3>
+
+<p>In addition, we also need some helper classes that could have the following responsibilities:</p>
+
+<ul>
+<li><p><strong>Managing data caches:</strong> It could be any implementation that provides a temporary storage. So, far i have used a simple in memory array for <code>ob2chado</code> loader.
+It is implemented as a <strong>parametric</strong> Moose <a href="https://github.com/dictyBase/Modware-Loader/blob/develop/lib/Modware/Role/WithDataStash.pm">Role</a>.
+Consume that role in a Moose class..
+<code>perl
+package Myclass;
+use Moose::Role;
+with 'Modware::Role::WithDataStash' =&gt;
+  { create_stash_for =&gt; [qw/term comment/] };
+</code>
+The above will import four methods/element making a total of 8 methods in the class.
+For term it will import &hellip;
+<code>
+add_to_term_cache
+clean_term_cache
+entries_in_term_cache
+count_entries_in_term_cache
+</code>
+The use will be very simple&hellip;
+<code>perl
+$self-&gt;add_to_term_cache($term);
+say $self-&gt;count_entries_in_term_cache;
+for my $term($self-&gt;entries_in_term_cache) {
+  .......
+}
+</code></p></li>
+<li><p><strong>Basic CRUD for database:</strong> It is absolutely chado specific pattern where four tables <strong>cv</strong>,<strong>cvterm</strong>, <strong>dbxref</strong> and <strong>db</strong>
+are frequently reused. Here is one of the <a href="https://github.com/dictyBase/Modware-Loader/blob/develop/lib/Modware/Loader/Role/Ontology/WithHelper.pm">implementation</a>.
+It provides bunch of reusable methods that  mostly works on one of the four tables
+mentioned earlier&hellip;
+<code>
+find_or_create_dbrow
+find_or_create_cvrow
+find_or_create_cvterm_namespace
+</code></p></li>
+<li><p><strong>Data transformations</strong>: There are few methods needed here and there, however currently
+they are private to the other helpers. Still nothing there which stands out.</p></li>
+</ul>
+
+
+<p>However, these are not set in stone and there could be handful of <strong>helper</strong> classes. And it depends on the <strong>manager</strong>
+class which one it needs to consume. But its important to share the helper classes for different backend
+specific <strong>manager</strong> class. So, all the helper classes should have a defined interface.</p>
+
+<h2>Loading into chado from staging</h2>
+
+<p>Quite obviously, the responsible entity(or class) will transfer the data to the actual
+tables in chado database. Lets get down to the interface &hellip;.</p>
+
+<p><img src="/images/chado_manager.png"></p>
+
+<h3>Attributes</h3>
+
+<ul>
+<li><strong>schema</strong>: Mentioned earlier.</li>
+<li><strong>sqlmanager:</strong> Similarly, mentioned earlier.</li>
+</ul>
+
+
+<h3>Methods</h3>
+
+<ul>
+<li><strong>alter_tables</strong>: To prepare chado tables for bulk load, such as disabling indexes
+and/or foreign keys etc, if needed.</li>
+<li><strong>bulk_load:</strong> This method generally runs a series of all <em>sql</em> statements to do the
+actual data loading.</li>
+<li><strong>reset_tables</strong>: Should reset the chado tables to its pristine states if the
+``alter_tables``` method did any change. Also any other procedure.</li>
+<li><strong>logger:</strong> An instance of an logger.</li>
+</ul>
+
+
+<p>The methods should run in the following order &hellip;
+<code>
+alter_tables
+bulk_load
+reset_tables
+</code></p>
+
+<p>This loading phase should run after the staging as it needs data from staging tables. As
+usual, the methods and attributes should be wrapped around a generic interface <em>role</em>.</p>
+
+<h2>The loader itself</h2>
+
+<p>The loader would be provide a command line/webapp interface that basically coordinate
+these managers(both staging and chado) to load it. The loader frontend also ensures that
+all the steps are executed in order. Here&rsquo;s how the software stack interacts with each
+other.</p>
+
+<p><img src="/images/loader_stack.png"></p>
+
+<ul>
+<li>The loader frontend only has direct interaction with the flat file, however it does
+not have any connection with storage backend. It does also interacts with both the
+managers.</li>
+<li>Staging manager interacts with only temp storage whereas Chado manager interacts with
+both storages. However, the managers are completely decoupled.</li>
+</ul>
+
+
+<p>The diagram below shows data flow where it goes from the flat file to the chado
+database.</p>
+
+<p><img src="/images/loader_dataflow.png"></p>
+
+<ul>
+<li>The data get pushed by the frontend to the <code>Stagingmanager</code> and then into staging
+tables.</li>
+<li>The <code>Chadomanager</code> then pulls it from staging table and push it to the chado
+database.</li>
+</ul>
+
+
+<p>For an implementation of this pattern look at perl based <code>oboclosoure2chado</code>
+<a href="https://github.com/dictyBase/Modware-Loader/blob/develop/lib/Modware/Load/Command/oboclosure2chado.pm">command</a>.</p>
+]]></content>
+  </entry>
+  
+</feed>

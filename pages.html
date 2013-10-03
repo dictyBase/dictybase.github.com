@@ -9,7 +9,7 @@
   <meta name="author" content="dictyBase Developers">
 
   
-  <meta name="description" content="List of Pages Jun 21st, 2012 Installing Modware Loader Integrate dictyBase headers and footers in gbrowse2 Loading ontology in Chado database &hellip;">
+  <meta name="description" content="List of Pages Jun 21st, 2012 Installing Modware Loader Setting up perl environment for development todo list Tblastn protein alignments with &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,10 +21,11 @@
   <link rel="canonical" href="http://dictyBase.github.com/pages.html">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
@@ -97,29 +98,7 @@
   <ul>
   
     
-  
-    
-  
-    
-  
-    
-  
-    
       <li><a href="/install-modware-loader/index.html">Installing Modware Loader</a>
-    
-  
-    
-      <li><a href="/integrate-dictybase-header-footer-gbrowse2/index.html">Integrate dictyBase headers and footers in gbrowse2</a>
-    
-  
-    
-      <li><a href="/obo-loader/index.html">Loading ontology in Chado database</a>
-    
-  
-    
-      <li><a href="/obo-loading/index.html">Ontology data model in chado database</a>
-    
-  
     
   
     
@@ -129,15 +108,9 @@
     
   
     
-      <li><a href="/prepare-data-for-gbrowse-visualization/index.html">Prepare and loading data for visualizing in gbrowse</a>
-    
   
     
-      <li><a href="/prepare-remote-machine-for-gbrowse2-install/index.html">Prepare remote machine for gbrowse2 install</a>
-    
-  
-    
-      <li><a href="/psgi-gbrowse2/index.html">Running PSGI gbrowse2</a>
+      <li><a href="/todo-list/index.html">todo list</a>
     
   
     
@@ -149,7 +122,53 @@
     
   
     
-      <li><a href="/todo-list/index.html">todo list</a>
+      <li><a href="/prepare-remote-machine-for-gbrowse2-install/index.html">Prepare remote machine for gbrowse2 install</a>
+    
+  
+    
+      <li><a href="/prepare-data-for-gbrowse-visualization/index.html">Prepare and loading data for visualizing in gbrowse</a>
+    
+  
+    
+      <li><a href="/obo-loader/index.html">Loading ontology in Chado database</a>
+    
+  
+    
+  
+    
+  
+    
+      <li><a href="/obo-loading/index.html">Ontology data model in chado database</a>
+    
+  
+    
+      <li><a href="/integrate-dictybase-header-footer-gbrowse2/index.html">Integrate dictyBase headers and footers in gbrowse2</a>
+    
+  
+    
+  
+    
+      <li><a href="/psgi-gbrowse2/index.html">Running PSGI gbrowse2</a>
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
     
   
     
@@ -208,7 +227,7 @@
       
         <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/pages.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/pages.html" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/pages.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/pages.html" >Tweet</a>
   
   
   
@@ -256,7 +275,7 @@
   <a href="https://github.com/dictybase">@dictybase</a> on GitHub
   
   <script type="text/javascript">
-    $.domReady(function(){
+    $(document).ready(function(){
         if (!window.jXHR){
             var jxhr = document.createElement('script');
             jxhr.type = 'text/javascript';
@@ -281,11 +300,15 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum annotations in GFF3 format</a>
+        <a href="/blog/2013/09/18/chado-loader-design/">Design Pattern of Chado Database Loaders</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the dictybase GFF3</a>
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum Annotations in GFF3 Format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the Dictybase GFF3</a>
       </li>
     
   </ul>
@@ -316,7 +339,7 @@
       var twitterWidgets = document.createElement('script');
       twitterWidgets.type = 'text/javascript';
       twitterWidgets.async = true;
-      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
       document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
     })();
   </script>
