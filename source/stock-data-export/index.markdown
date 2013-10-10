@@ -69,6 +69,20 @@ The data is exported in TAB delimited files. Structure of exported data looks li
 ## Rationale & SQL
 
 ### Inventory
+Inventory is a property of the stock (strain/plasmid). In the legacy schema, the inventory information sits in a table of its own. With this export, the inventory will be controlled by ontologies ([strain_inventory.obo](https://github.com/dictyBase/migration-data/blob/master/ontologies/strain_inventory.obo), [plasmid_inventory.obo](https://github.com/dictyBase/migration-data/blob/master/ontologies/plasmid_inventory.obo) & [storage_condition.obo](https://github.com/dictyBase/migration-data/blob/master/ontologies/storage_condition.obo)).  
+
+```sql
+/* Strain inventory */
+SELECT d.accession, sci.location, sci.color, sci.no_of_vials, sci.obtained_as, sci.stored_as, sci.storage_date, sci.storage_comments private_comment, sci.other_comments_and_feedback public_comment
+FROM CGM_DDB.stock_center_inventory sci
+JOIN CGM_DDB.stock_center sc ON sc.id = sci.strain_id
+JOIN CGM_CHADO.dbxref d ON d.dbxref_id = sc.dbxref_id;
+
+/* Plasmid inventory */
+SELECT p.id, pi.location, pi.color, pi.stored_as, pi.storage_date, pi.other_comments_and_feedback public_comment
+FROM CGM_DDB.plasmid_inventory pi
+JOIN CGM_DDB.plasmid p ON p.id = pi.plasmid_id;
+```
 
 ### Phenotype
 Phenotype is something that is observed. Each strain has a genotype which on expression under certain environment shows the phenotype. Thus, the data model for phenotype involves genotype, environment and the pubmed reference. It also optionally involves the assay information. Following SQL retrieves the phenotype information,
@@ -88,6 +102,13 @@ ORDER BY g.uniquename, pub.uniquename, phen.name;
 ```
 
 From the above SQL, `phen.name`, `env.name` & `assay.name` are terms from ontologies viz. `Dicty Phenotypes`, `Dicty Environment` & `Dictyostelium Assay` respectively. Read about ontology loading [here](/obo-loading)
+
+### Props, Publications & Characteristics
+Props are additional information for the stock (in this case). For strains, we have props like 'mutagenesis method', 'mutant type' & 'synonym'. And for plasmids, thr props are 'keyword', 'depositor' & 'synonym'. 
+
+Stocks have associated publications. Mainly the publications are PubMed IDs. However, stocks have some unresolvable internal references. With this export, these internal references are cleaned up and brought down a standard, PubMed. While exporting publications redundant/duplicate entries were thrown out and the data is exported as a TAB delimited file with 2 columns; *DBS_ID* & *PMID*
+
+The characteristics are strain characteristics. It is maintained as an [ontology](https://github.com/dictyBase/migration-data/blob/master/ontologies/strain_characteristics.obo)
 
 ## Command 
 The data is being exported using the [`modware-dump`](https://github.com/dictyBase/Modware-Loader/blob/develop/bin/modware-dump) command. All the modules used by this command can be found under [`Modware::Dump`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Dump) or [`Modware::Role::Stock::Export`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Export). The command looks like this;
