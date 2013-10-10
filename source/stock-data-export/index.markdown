@@ -5,28 +5,99 @@ date: 2013-10-04 16:07
 comments: true
 sharing: true
 footer: true
+enlist: true
+toc: true
 author: Yogesh Pandit
 ---
 
-Stock at dictyBase.org consists of strains & plasmids.  Currently, the data resides in Oracle under a custom schema. The different types of data associated with stocks are 
+## Why?
+Stock at dictyBase.org consists of strains & plasmids.  Currently, the data resides in Oracle under a custom schema. Objectives behind this export (and eventual import) 
 
-```yaml
-stock:
-	strain:
-		inventory, genotype, phenotype, characteristics, publications, parental strain, strain-plasmids,
-	
-	plasmid:
-		inventory, publications, sequences 
+* to bring the data under a standard Chado schema.  
+* to clean/merge/format data.
+   * each entry has multiple kinds of references (pubmed, internal reference, other references)
+   * data exists in 2 tables and is neither linked nor in sync (strain-plasmid & plasmid)
+   * abbreviations not linked to full forms (mutagenesis method)
+   * improper spacing & linebreaks (some Windows-style)
+* to correct data model for inventories, phenotype, strain-feature links etc.
+
+## Data
+Different kinds of data that are exported as a part of stock are represented in JSON below.
+```json
+{
+	"stock": {
+		"strain": ["inventory", "genotype", "phenotype", 
+			"characteristics", "publications", "parental strain", 
+			"strain-plasmids"],
+		"plasmid": ["inventory", "publications", "sequences",
+			"plasmid map"]
+	}
+}
 ```
 
-The data is being exported using the `modware-dump` command. The command look like this;
+The data is exported in TAB delimited files. Structure of exported data looks like
+```json
+{
+	"stock": {
+		"strain": {
+			"strain": ["dbs_id", "strain_name", "organism", "strain_description"],
+			"inventory": ["dbs_id", "location", "color", "no_of_vials", "obtained_as", 
+				"stored_as", "storage_date", "private_comment", "public_comment"],
+			"publications": ["dbs_id", "pmid"],
+			"characteristics": ["dbs_id", "characteristic"],
+			"genotype": ["dbs_id", "dsc_g_id", "genotype"],
+			"phenotype": ["dbs_id", "phenotype", "environment", "assay", 
+				"pmid", "phenotype_note"],
+			"strain-plasmid": ["dbs_id", "dbp_id"/"plasmid_name"],
+			"strain-feature": ["dbs_id", "ddb_g_id"],
+			"parent": ["dbs_id", "dbs_id_parent"/"strain_name_parent"],
+			"props": ["dbs_id", "prop_type", "prop_value"]
+		},
+		"plasmid": {
+			"plasmid": ["dbp_id", "plasmid_name", "plasmid_description"],
+			"inventory": ["dbp_id", "location", "color", "stored_as", 
+				"storage_date", "public_comment"],
+			"publications": ["dbp_id", "pmid"],
+			"plasmid-feature": ["dbp_id", "ddb_g_id"],
+			"props": ["dbp_id", "prop_type", "prop_value"],
+			"genbank": ["dbp_id", "genbank_accesion"],
+		}
+	}
+}
+```
+
+## Rationale & SQL
+
+### Inventory
+
+### Phenotype
+Phenotype is something that is observed. Each strain has a genotype which on expression under certain environment shows the phenotype. Thus, the data model for phenotype involves genotype, environment and the pubmed reference. It also optionally involves the assay information. Following SQL retrieves the phenotype information,
+
+```sql
+SELECT g.uniquename, phen.name, env.name, assay.name, pub.uniquename, p.value
+FROM phenstatement pst
+LEFT JOIN genotype g on g.genotype_id = pst.genotype_id
+LEFT JOIN cvterm env on env.cvterm_id = pst.environment_id
+LEFT JOIN cv env_cv on env_cv.cv_id = env.cv_id
+LEFT JOIN phenotype p on p.phenotype_id = pst.phenotype_id
+LEFT JOIN cvterm phen on phen.cvterm_id = p.observable_id
+LEFT JOIN cvterm assay on assay.cvterm_id = p.assay_id
+LEFT JOIN cv assay_cv on assay_cv.cv_id = assay.cv_id
+LEFT JOIN pub on pub.pub_id = pst.pub_id
+ORDER BY g.uniquename, pub.uniquename, phen.name;
+```
+
+From the above SQL, `phen.name`, `env.name` & `assay.name` are terms from ontologies viz. `Dicty Phenotypes`, `Dicty Environment` & `Dictyostelium Assay` respectively. Read about ontology loading [here](/obo-loading)
+
+## Command 
+The data is being exported using the [`modware-dump`](https://github.com/dictyBase/Modware-Loader/blob/develop/bin/modware-dump) command. All the modules used by this command can be found under [`Modware::Dump`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Dump) or [`Modware::Role::Stock::Export`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Export). The command looks like this;
 
 ```bash
-modware-dump 
+$> modware-dump 
 Available commands:
 
-	commands: list the application's commands
-	    help: display a command's help screen
+	  commands: list the application's commands
+	       help: display a command's help screen
 
 dictyplasmid: Dump data for dicty plasmids
  dictystrain: Dump data for dicty strains
@@ -53,14 +124,14 @@ The options common for both commands are
 ```
 
 ```bash
-modware-dump dictystrain [-?cdhiloppuu] [long options...]
+$> modware-dump dictystrain [-?cdhiloppuu] [long options...]
     --data                        Option to dump all data (default) or (strain, 
 									inventory, genotype, phenotype, publications, 
 									genes, characteristics, props, parent, plasmid)
 ```
 
 ```bash
-modware-dump dictyplasmid [-?cdhiloppuu] [long options...]
+$> modware-dump dictyplasmid [-?cdhiloppuu] [long options...]
 	--data                        Option to dump all data (default) or (plasmid, inventory, 
 	                              	genbank, publications, genes, props)
 	--sequence                    Option to fetch sequence in Genbank format and write to file
