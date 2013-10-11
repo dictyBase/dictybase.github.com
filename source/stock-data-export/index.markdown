@@ -108,7 +108,12 @@ Props are additional information for the stock (in this case). For strains, we h
 
 Stocks have associated publications. Mainly the publications are PubMed IDs. However, stocks have some unresolvable internal references. With this export, these internal references are cleaned up and brought down a standard, PubMed. While exporting publications redundant/duplicate entries were thrown out and the data is exported as a TAB delimited file with 2 columns; *DBS_ID* & *PMID*
 
-The characteristics are strain characteristics. It is maintained as an [ontology](https://github.com/dictyBase/migration-data/blob/master/ontologies/strain_characteristics.obo)
+The characteristics are strain characteristics. It is maintained as an [ontology](https://github.com/dictyBase/migration-data/blob/master/ontologies/strain_characteristics.obo). Strain characteristics are exported as a 2 column TAB delimited file; *DBS_ID* & *Characteristic Term*
+
+### Parental strain & Strain-Plasmid
+Parental strains, as the name suggests, are parents of the strain records. There are only a few parents for *Dictyostelium discoideum*. However, depending on when these parents were submitted to the Dicty Stock Center and by whom, they can have multiple records in the database. So the issue is that a [strain can be linked to multiple entries of the same parent](https://github.com/dictyBase/Modware-Loader/issues/62). So now, we will be added generic strains to resolve this issue. All strains with parents with multiple IDs will point to only one generic strain. Currently data is exported in 2 columns; *DBS_ID* & *DBS_ID of parent*
+
+In case of strain-plasmids, there are [strain-plasmid entries that are not real plasmids](https://github.com/dictyBase/Modware-Loader/issues/63) in the Dicty Stock Center. When the plasmid entri exists, the 2nd column exported is the DBP_ID, otherwise it is the `plasmid_name`. This issue is resolved with the stock data import
 
 ## Command 
 The data is being exported using the [`modware-dump`](https://github.com/dictyBase/Modware-Loader/blob/develop/bin/modware-dump) command. All the modules used by this command can be found under [`Modware::Dump`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Dump) or [`Modware::Role::Stock::Export`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Export). The command looks like this;
@@ -156,4 +161,17 @@ $> modware-dump dictyplasmid [-?cdhiloppuu] [long options...]
 	--data                        Option to dump all data (default) or (plasmid, inventory, 
 	                              	genbank, publications, genes, props)
 	--sequence                    Option to fetch sequence in Genbank format and write to file
+```
+
+To run the command
+
+```perl
+# Export strain data
+$_> modware-dump dictystrain -c strain_export.yaml --output_dir <folder-to-export-data> # This will dump all data
+$_> modware-dump dictystrain -c strain_export.yaml --data genotype --data inventory --data genes --data publications # Specific exports
+
+# Export plasmid data
+$_> modware-dump dictyplasmid -c plasmid_export.yaml --output_dir <folder-to-export-data> # This will dump all data
+$_> modware-dump dictyplasmid -c plasmid_export.yaml --data genbank --data genes # Specific exports
+$_> modware-dump dictyplasmid -c plasmid_export.yaml --sequence # Export plasmid sequences in FastA/GenBank
 ```
