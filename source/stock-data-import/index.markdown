@@ -19,15 +19,15 @@ The plasmid sequences are available for import in either GenBank or FastA format
 
 
 ## Command
-The data is being imported using the [`modware-import`]() command. All the modules used by this command can be found under [`Modware::Import`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Import) and [`Modware::Role::Stock::Import`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Import)
+The data is being imported using the [`modware-import`](https://github.com/dictyBase/Modware-Loader/blob/develop/bin/modware-import) command. All the modules used by this command can be found under [`Modware::Import`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Import) and [`Modware::Role::Stock::Import`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Import)
 The command looks like this;
 
 ```bash
 $> modware-import
 Available commands:
 
-	       commands: list the application's commands
-	            help: display a command's help screen
+	      commands: list the application's commands
+	          help: display a command's help screen
 
 dictyplasmid2chado: Command to import plasmid data from dicty stock
  dictystrain2chado: Command to import strain data from dicty stock
