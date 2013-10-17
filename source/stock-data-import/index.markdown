@@ -15,7 +15,13 @@ Data the will be imported is in the format explained [here](/stock-data-export)
 ## Rationale & SQL
 
 ### Plasmid Sequence
-The plasmid sequences are available for import in either GenBank or FastA formats. With this import, we convert GenBank to FastA and import only FastA sequences. The plasmid sequences are stored in `feature` table. Default `uniquename` & `dbxref.accession` is *DBP-ID*. In case of GenBank, the GenBank accession is the `dbxref.accession`. Also an entry is made in the `stockprop` table for each plasmid that has a sequence. The `stockprop.type => 'plasmid_vector'` & the `stockprop.value => feature_id`. Also as plasmids do not have an organism defined (also not enough metadata available for a different kind of data model), default is *Dictyostelium discoideum*.
+* The plasmid sequences are available for import in either GenBank or FastA formats. 
+* With this import, we convert GenBank to FastA and import only FastA sequences. 
+* The plasmid sequences are stored in `feature` table. Default `uniquename` & `dbxref.accession` is *DBP-ID*. 
+* In case of GenBank, the GenBank accession is the `dbxref.accession`. 
+* Also an entry is made in the `stockprop` table for each plasmid that has a sequence. 
+* The `stockprop.type => 'plasmid_vector'` & the `stockprop.value => feature_id`. 
+* Also as plasmids do not have an organism defined (also not enough metadata available for a different kind of data model), default is *Dictyostelium discoideum*.
 
 
 ## Command
