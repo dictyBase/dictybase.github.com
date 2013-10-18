@@ -14,6 +14,10 @@ Data the will be imported is in the format explained [here](/stock-data-export)
 
 ## Rationale & SQL
 
+### Inventories
+
+### Strain-Plasmid
+
 ### Plasmid Sequence
 * The plasmid sequences are available for import in either GenBank or FastA formats. 
 * With this import, we convert GenBank to FastA and import only FastA sequences. 
@@ -23,6 +27,12 @@ Data the will be imported is in the format explained [here](/stock-data-export)
 * The `stockprop.type => 'plasmid_vector'` & the `stockprop.value => feature_id`. 
 * Also as plasmids do not have an organism defined (also not enough metadata available for a different kind of data model), default is *Dictyostelium discoideum*.
 
+### Plasmid Genes
+* Plasmids has genes associated with it (from legacy data). However, all the data about the sequence & loci is not available.
+* Had the sequence data been available, a diffeent data model would have been adopted.
+* Currently, the genes associated with plasmids are stored in the `stockprop` table
+   * `stockprop.type => 'has_part'`. `has_part` is from `sequence` ontology.
+   * `stockprop.value => DDB_G-ID`
 
 ## Command
 The data is being imported using the [`modware-import`](https://github.com/dictyBase/Modware-Loader/blob/develop/bin/modware-import) command. All the modules used by this command can be found under [`Modware::Import`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Import) and [`Modware::Role::Stock::Import`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Import)
