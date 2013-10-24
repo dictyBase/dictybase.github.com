@@ -133,6 +133,9 @@ ORDER BY sbj.name, sbj.uniquename;
 * The model for phenotype is based on the following concept;
    * `strain` has a `genotype`. This `genotype`, under certain `environment` expresses to show `phenotype`. 
 
+* In the legacy database there are manually added phenotypes for strains. They are not linked to the `Dicty Phenotypes` ontology. To correct this, these phenotype terms were manually mapped to terms in the ontology and there corrected data can be found [here](https://github.com/dictyBase/migration-data/blob/master/strain/DSC_phenotypes_orig.tsv). 
+* This data is in a slightly different format that what is accepted for import. So the import data was manually created and can be found [here](https://github.com/dictyBase/migration-data/blob/master/strain/DSC_phenotypes_import.tsv). This file can be passed to `modware-import dictystrain2chado` using the `--dsc_phenotypes` parameter. As you will see, most of these phenotypes do not have a PMID associated with it. So we just use the `Dicty Phenotypes` reference as default.
+
 Once data is imported, it can be viewed/retrieved using the following SQL;
 ```sql
 SELECT s.uniquename dbs_is, g.name genotype, phen.name phenotype, e.description environment
