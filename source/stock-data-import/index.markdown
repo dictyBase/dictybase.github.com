@@ -3,6 +3,7 @@ layout: page
 title: "stock data import"
 date: 2013-10-04 17:13
 comments: true
+enlist: true
 sharing: true
 footer: true
 toc: true
@@ -194,41 +195,57 @@ dictyplasmid2chado: Command to import plasmid data from dicty stock
 The options common for both commands are
 
 ```bash
-	-c --configfile               yaml config file to specify all command line options
-	-d --dir                      Folder under which input and output files can be 
-									configured to be written
-	-i --input                    Name of the input file
-	-h -? --usage --help          Prints this usage information.
-	--log_level                   Log level of the logger,  default is error
-	-u --user                     database user
-	--pass -p --password          database password
-	-l --logfile                  Name of logfile,  default goes to STDERR
-	--prune
-	--mock_pubs
+		-c --configfile        yaml config file to specify all command line
+			                   options
+	   	-d --dir               Folder under which input and output files can
+		                       be configured to be written
+		-i --input             Name of the input file
+		-h -? --usage --help   Prints this usage information.
+		--dsn                  database DSN
+		--log_level            Log level of the logger,  default is error
+		-u --user              database user
+		--pass -p --password   database password
+		-l --logfile           Name of logfile,  default goes to STDERR
+		--prune
+		--mock_pubs            Mock publications, pub data is not populated.
+		                       Default 0. Should be used only for testing code
 ```
 
 Options specific to the commands:
 
 ```bash
-$>
+$> modware-import dictyplasmid2chado [-?cdhilpu] [long options...]
+		--data                 Data to be imported. Default all
+		                       (publications, props, inventory, images,
+		                       sequence)
+		--seq_data_dir         Path to folder with plasmid sequence files in
+		                       GenBank|FastA formats
+		--image_url            Base URL for plasmid map images. Default
+		                       github-url
 ```
 
 ```bash
-$>
+$> modware-import dictystrain2chado [-?cdhilpu] [long options...]
+		--data                 Data to be imported. Default all
+	                           (characteristics, publications, inventory,
+			                   genotype, phenotype, props, parent, plasmid)
+		--dsc_phenotypes       File with corrected stockcenter phenotypes
 ```
 
 To run the command
 
 ```perl
 # Import plasmid data
-$> modware-import dictyplasmid2chado2 -c plasmid_import.yaml 
-$> modware-import dictyplasmid2chado2 -c plasmid_import.yaml --data inventory --data props # For specific imports 
-$> modware-import dictyplasmid2chado2 -c plasmid_import.yaml --seq_data_dir <seq-data-dir> # For sequence 
+$> modware-import dictyplasmid2chado -c plasmid_import.yaml 
+$> modware-import dictyplasmid2chado -c plasmid_import.yaml --mock_pubs --prune # Options to prune or mock publications 
+$> modware-import dictyplasmid2chado -c plasmid_import.yaml --data inventory --data props # For specific imports 
+$> modware-import dictyplasmid2chado -c plasmid_import.yaml --seq_data_dir <path-to-folder> # Path tol folder with GanBank/FastA sequences
 
 # Import strain data
-$> modware-import dictystrain2chado2 -c strain_import.yaml 
-$> modware-import dictystrain2chado2 -c strain_import.yaml --prune --mock_pubs # Options to prune or mock publications 
-$> modware-import dictystrain2chado2 -c strain_import.yaml --data inventory --data genotype # For specific imports 
+$> modware-import dictystrain2chado -c strain_import.yaml 
+$> modware-import dictystrain2chado -c strain_import.yaml --prune --mock_pubs # Options to prune or mock publications 
+$> modware-import dictystrain2chado -c strain_import.yaml --data inventory --data genotype # For specific imports 
+$> modware-import dictystrain2chado -c strain_import.yaml --dsc_phenotypes <path-to-file> # Path to file with corrected DSC phenotypes 
 ```
 
 **NOTE:** *Plasmid data will have to be imported before the strain data. This is because the strain-plasmids depend on the plasmid records*
