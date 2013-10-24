@@ -117,7 +117,7 @@ Parental strains, as the name suggests, are parents of the strain records. There
 In case of strain-plasmids, there are [strain-plasmid entries that are not real plasmids](https://github.com/dictyBase/Modware-Loader/issues/63) in the Dicty Stock Center. When the plasmid entri exists, the 2nd column exported is the DBP_ID, otherwise it is the `plasmid_name`. This issue is resolved with the stock data import
 
 ### Plasmid sequence
-The plasmid sequences are served from static files, currently. These sequences have been cleaned by running it through `Bio::SeqIO` and some manually. The files names are the database IDs for plasmids. The raw, pre-processed data can be found [here](https://github.com/dictyBase/migration-data/tree/master/plasmid/raw_sequence). This is the input for `--sequence` parameter of [`modware-dump dictyplasmid`](#running-the-commands). The data is exported in `sequence` subdirectory of output directory. The file names are *DBP-ID*s and extension is the data format (genbank/fasta).
+The plasmid sequences are served from static files, currently. These sequences have been cleaned by running it through `Bio::SeqIO` and some manually. The files names are the database IDs for plasmids. The raw, pre-processed data can be found [here](https://github.com/dictyBase/migration-data/tree/master/plasmid/raw_sequence). This is the input for `--seq_data_dir` parameter of [`modware-dump dictyplasmid`](#running-the-commands). The data is exported in `sequence` subdirectory of output directory. The file names are *DBP-ID*s and extension is the data format (genbank/fasta).
 
 ## Command 
 The data is being exported using the [`modware-dump`](https://github.com/dictyBase/Modware-Loader/blob/develop/bin/modware-dump) command. All the modules used by this command can be found under [`Modware::Dump`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Dump) or [`Modware::Role::Stock::Export`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Export). The command looks like this;
@@ -164,7 +164,8 @@ $> modware-dump dictystrain [-?cdhiloppuu] [long options...]
 $> modware-dump dictyplasmid [-?cdhiloppuu] [long options...]
 	--data                        Option to dump all data (default) or (plasmid, inventory, 
 	                              	genbank, publications, genes, props)
-	--sequence                    Option to fetch sequence in Genbank format and write to file
+	--seq_data_dir                Path to folder with raw plasmid sequences. If set, it exports properly 
+								    formatted GenBank/FastA sequences
 ```
 
 ### Running the commands
