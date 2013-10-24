@@ -101,10 +101,11 @@ LEFT JOIN pub on pub.pub_id = pst.pub_id
 ORDER BY g.uniquename, pub.uniquename, phen.name;
 ```
 
-From the above SQL, `phen.name`, `env.name` & `assay.name` are terms from ontologies viz. `Dicty Phenotypes`, `Dicty Environment` & `Dictyostelium Assay` respectively. Read about ontology loading [here](/obo-loading)
+From the above SQL, `phen.name`, `env.name` & `assay.name` are terms from ontologies viz. `Dicty Phenotypes`, `Dicty Environment` & `Dictyostelium Assay` respectively. Read about ontology loading [here](/obo-loading).
+Columns in the exported TAB delimited file are: *DBS-ID*, *Phenotype term*, *Environment*, *Assay*, *PMID*, *Phenotype note*
 
 ### Props, Publications & Characteristics
-Props are additional information for the stock (in this case). For strains, we have props like 'mutagenesis method', 'mutant type' & 'synonym'. And for plasmids, thr props are 'keyword', 'depositor' & 'synonym'. 
+Props are additional information for the stock (in this case). For strains, we have props like 'mutagenesis method', 'mutant type' & 'synonym'. And for plasmids, thr props are 'keyword', 'depositor' & 'synonym'. The exported file has columns; *DBS-ID*, *Prop*, *Value*. 
 
 Stocks have associated publications. Mainly the publications are PubMed IDs. However, stocks have some unresolvable internal references. With this export, these internal references are cleaned up and brought down a standard, PubMed. While exporting publications redundant/duplicate entries were thrown out and the data is exported as a TAB delimited file with 2 columns; *DBS_ID* & *PMID*
 
