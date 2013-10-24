@@ -177,6 +177,23 @@ JOIN cvterm typ ON typ.cvterm_id = sp.type_id
 WHERE sp.value LIKE 'DDB_G%';
 ```
 
+### Plasmid Map Images
+* Some of the plasmids have images. Curently the images are [here](https://github.com/dictyBase/migration-data/tree/master/plasmid/images).
+* There were 2 options discussed to store images:
+   1. [Save image as a binary blob](https://github.com/dictyBase/Modware-Loader/issues/88)
+   2. [Saving url to image](https://github.com/dictyBase/Modware-Loader/pull/89)
+* Currently, only the second option is supported. By default the link to GitHub images is saved to database. However, if the images are being served from some other URL, the link base link can be passed to `--image_url`.
+* The links are saved to database only if they [return a 200 response](https://github.com/dictyBase/Modware-Loader/blob/develop/lib/Modware/Import/Stock/PlasmidImporter.pm#L273)
+* This data is stored in `stockprop` table where `cvterm.name => 'plasmid map'` where `cv.name => 'dicty_stockcenter'` and `stock.prop.value => <complete-image-url>`
+
+```sql
+SELECT s.uniquename, cvt.name, sp.value
+FROM stockprop sp
+JOIN stock s ON s.stock_id = sp.stock_id
+JOIN cvterm cvt ON cvt.cvterm_id = sp.type_id
+WHERE cvt.name = 'plasmid map';
+```
+
 ## Command
 The data is being imported using the [`modware-import`](https://github.com/dictyBase/Modware-Loader/blob/develop/bin/modware-import) command. All the modules used by this command can be found under [`Modware::Import`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Import) and [`Modware::Role::Stock::Import`](https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Import)
 The command looks like this;
