@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "stock data import"
+title: "Stock Data Import"
 date: 2013-10-04 17:13
 comments: true
 enlist: true
