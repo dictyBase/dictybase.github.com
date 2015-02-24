@@ -1,0 +1,544 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Stock Data Export - dictyBase Developers</title>
+  <meta name="author" content="dictyBase Developers">
+
+  
+  <meta name="description" content="Stock Data Export Oct 4th, 2013 Why? Stock at dictyBase.org consists of strains &amp; plasmids. Currently, the data resides in Oracle under a custom &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://dictyBase.github.com/stock-data-export">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  // Revert jQuery's '$' alias,  to avoid clashes with ender.js. NOTE: Use
+    // jQuery(...),  instead of $(...) from here on.
+      jQuery.noConflict();
+</script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript"></script>
+<script src="/javascripts/generate-toc.js" type="text/javascript"></script>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">dictyBase Developers</a></h1>
+  
+    <h2>Solving one problem at a time</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:dictyBase.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/pages.html">Pages</a></li>
+  <li><a href="/pages/documentation">Documentation</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article role="article">
+  
+  <header>
+    <h1 class="entry-title">Stock Data Export</h1>
+    <p class="meta">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-04T16:07:00-05:00" pubdate data-updated="true">Oct 4<span>th</span>, 2013</time></p>
+  </header>
+  
+  <h2>Why?</h2>
+
+<p>Stock at dictyBase.org consists of strains &amp; plasmids.  Currently, the data resides in Oracle under a custom schema. Objectives behind this export (and eventual import)</p>
+
+<ul>
+<li>to bring the data under a standard Chado schema.</li>
+<li>to clean/merge/format data.
+
+<ul>
+<li>each entry has multiple kinds of references (pubmed, internal reference, other references)</li>
+<li>data exists in 2 tables and is neither linked nor in sync (strain-plasmid &amp; plasmid)</li>
+<li>abbreviations not linked to full forms (mutagenesis method)</li>
+<li>improper spacing &amp; linebreaks (some Windows-style)</li>
+</ul>
+</li>
+<li>to correct data model for inventories, phenotype, strain-feature links etc.</li>
+</ul>
+
+
+<h2>Data</h2>
+
+<p>Different kinds of data that are exported as a part of stock are represented in JSON below.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;stock&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;strain&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;inventory&quot;</span><span class="p">,</span> <span class="s2">&quot;genotype&quot;</span><span class="p">,</span> <span class="s2">&quot;phenotype&quot;</span><span class="p">,</span>
+</span><span class='line'>          <span class="s2">&quot;characteristics&quot;</span><span class="p">,</span> <span class="s2">&quot;publications&quot;</span><span class="p">,</span> <span class="s2">&quot;parental strain&quot;</span><span class="p">,</span>
+</span><span class='line'>          <span class="s2">&quot;strain-plasmids&quot;</span><span class="p">],</span>
+</span><span class='line'>      <span class="nt">&quot;plasmid&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;inventory&quot;</span><span class="p">,</span> <span class="s2">&quot;publications&quot;</span><span class="p">,</span> <span class="s2">&quot;sequences&quot;</span><span class="p">,</span>
+</span><span class='line'>          <span class="s2">&quot;plasmid map&quot;</span><span class="p">]</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The data is exported in TAB delimited files. Structure of exported data looks like</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;stock&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;strain&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>          <span class="nt">&quot;strain&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;strain_name&quot;</span><span class="p">,</span> <span class="s2">&quot;organism&quot;</span><span class="p">,</span> <span class="s2">&quot;strain_description&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;inventory&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;location&quot;</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="s2">&quot;no_of_vials&quot;</span><span class="p">,</span> <span class="s2">&quot;obtained_as&quot;</span><span class="p">,</span>
+</span><span class='line'>              <span class="s2">&quot;stored_as&quot;</span><span class="p">,</span> <span class="s2">&quot;storage_date&quot;</span><span class="p">,</span> <span class="s2">&quot;private_comment&quot;</span><span class="p">,</span> <span class="s2">&quot;public_comment&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;publications&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;pmid&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;characteristics&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;characteristic&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;genotype&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;dsc_g_id&quot;</span><span class="p">,</span> <span class="s2">&quot;genotype&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;phenotype&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;phenotype&quot;</span><span class="p">,</span> <span class="s2">&quot;environment&quot;</span><span class="p">,</span> <span class="s2">&quot;assay&quot;</span><span class="p">,</span>
+</span><span class='line'>              <span class="s2">&quot;pmid&quot;</span><span class="p">,</span> <span class="s2">&quot;phenotype_note&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;strain-plasmid&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;dbp_id&quot;</span><span class="err">/</span><span class="s2">&quot;plasmid_name&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;strain-feature&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;ddb_g_id&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;parent&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;dbs_id_parent&quot;</span><span class="err">/</span><span class="s2">&quot;strain_name_parent&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;props&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbs_id&quot;</span><span class="p">,</span> <span class="s2">&quot;prop_type&quot;</span><span class="p">,</span> <span class="s2">&quot;prop_value&quot;</span><span class="p">]</span>
+</span><span class='line'>      <span class="p">},</span>
+</span><span class='line'>      <span class="nt">&quot;plasmid&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>          <span class="nt">&quot;plasmid&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbp_id&quot;</span><span class="p">,</span> <span class="s2">&quot;plasmid_name&quot;</span><span class="p">,</span> <span class="s2">&quot;plasmid_description&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;inventory&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbp_id&quot;</span><span class="p">,</span> <span class="s2">&quot;location&quot;</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">,</span> <span class="s2">&quot;stored_as&quot;</span><span class="p">,</span>
+</span><span class='line'>              <span class="s2">&quot;storage_date&quot;</span><span class="p">,</span> <span class="s2">&quot;public_comment&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;publications&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbp_id&quot;</span><span class="p">,</span> <span class="s2">&quot;pmid&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;plasmid-feature&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbp_id&quot;</span><span class="p">,</span> <span class="s2">&quot;ddb_g_id&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;props&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbp_id&quot;</span><span class="p">,</span> <span class="s2">&quot;prop_type&quot;</span><span class="p">,</span> <span class="s2">&quot;prop_value&quot;</span><span class="p">],</span>
+</span><span class='line'>          <span class="nt">&quot;genbank&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dbp_id&quot;</span><span class="p">,</span> <span class="s2">&quot;genbank_accesion&quot;</span><span class="p">],</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Rationale &amp; SQL</h2>
+
+<h3>Inventory</h3>
+
+<p>Inventory is a property of the stock (strain/plasmid). In the legacy schema, the inventory information sits in a table of its own. With this export, the inventory will be controlled by ontologies (<a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/strain_inventory.obo">strain_inventory.obo</a>, <a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/plasmid_inventory.obo">plasmid_inventory.obo</a> &amp; <a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/storage_condition.obo">storage_condition.obo</a>).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="cm">/* Strain inventory */</span>
+</span><span class='line'><span class="k">SELECT</span> <span class="n">d</span><span class="p">.</span><span class="n">accession</span><span class="p">,</span> <span class="n">sci</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="n">sci</span><span class="p">.</span><span class="n">color</span><span class="p">,</span> <span class="n">sci</span><span class="p">.</span><span class="n">no_of_vials</span><span class="p">,</span> <span class="n">sci</span><span class="p">.</span><span class="n">obtained_as</span><span class="p">,</span> <span class="n">sci</span><span class="p">.</span><span class="n">stored_as</span><span class="p">,</span> <span class="n">sci</span><span class="p">.</span><span class="n">storage_date</span><span class="p">,</span> <span class="n">sci</span><span class="p">.</span><span class="n">storage_comments</span> <span class="n">private_comment</span><span class="p">,</span> <span class="n">sci</span><span class="p">.</span><span class="n">other_comments_and_feedback</span> <span class="n">public_comment</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">CGM_DDB</span><span class="p">.</span><span class="n">stock_center_inventory</span> <span class="n">sci</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">CGM_DDB</span><span class="p">.</span><span class="n">stock_center</span> <span class="n">sc</span> <span class="k">ON</span> <span class="n">sc</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">sci</span><span class="p">.</span><span class="n">strain_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">CGM_CHADO</span><span class="p">.</span><span class="n">dbxref</span> <span class="n">d</span> <span class="k">ON</span> <span class="n">d</span><span class="p">.</span><span class="n">dbxref_id</span> <span class="o">=</span> <span class="n">sc</span><span class="p">.</span><span class="n">dbxref_id</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Plasmid inventory */</span>
+</span><span class='line'><span class="k">SELECT</span> <span class="n">p</span><span class="p">.</span><span class="n">id</span><span class="p">,</span> <span class="n">pi</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="n">pi</span><span class="p">.</span><span class="n">color</span><span class="p">,</span> <span class="n">pi</span><span class="p">.</span><span class="n">stored_as</span><span class="p">,</span> <span class="n">pi</span><span class="p">.</span><span class="n">storage_date</span><span class="p">,</span> <span class="n">pi</span><span class="p">.</span><span class="n">other_comments_and_feedback</span> <span class="n">public_comment</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">CGM_DDB</span><span class="p">.</span><span class="n">plasmid_inventory</span> <span class="n">pi</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">CGM_DDB</span><span class="p">.</span><span class="n">plasmid</span> <span class="n">p</span> <span class="k">ON</span> <span class="n">p</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">pi</span><span class="p">.</span><span class="n">plasmid_id</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Phenotype</h3>
+
+<p>Phenotype is something that is observed. Each strain has a genotype which on expression under certain environment shows the phenotype. Thus, the data model for phenotype involves genotype, environment and the pubmed reference. It also optionally involves the assay information. Following SQL retrieves the phenotype information,</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="k">g</span><span class="p">.</span><span class="n">uniquename</span><span class="p">,</span> <span class="n">phen</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">env</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">assay</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">pub</span><span class="p">.</span><span class="n">uniquename</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">value</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">phenstatement</span> <span class="n">pst</span>
+</span><span class='line'><span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">genotype</span> <span class="k">g</span> <span class="k">on</span> <span class="k">g</span><span class="p">.</span><span class="n">genotype_id</span> <span class="o">=</span> <span class="n">pst</span><span class="p">.</span><span class="n">genotype_id</span>
+</span><span class='line'><span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">env</span> <span class="k">on</span> <span class="n">env</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">pst</span><span class="p">.</span><span class="n">environment_id</span>
+</span><span class='line'><span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">cv</span> <span class="n">env_cv</span> <span class="k">on</span> <span class="n">env_cv</span><span class="p">.</span><span class="n">cv_id</span> <span class="o">=</span> <span class="n">env</span><span class="p">.</span><span class="n">cv_id</span>
+</span><span class='line'><span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">phenotype</span> <span class="n">p</span> <span class="k">on</span> <span class="n">p</span><span class="p">.</span><span class="n">phenotype_id</span> <span class="o">=</span> <span class="n">pst</span><span class="p">.</span><span class="n">phenotype_id</span>
+</span><span class='line'><span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">phen</span> <span class="k">on</span> <span class="n">phen</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="n">observable_id</span>
+</span><span class='line'><span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">assay</span> <span class="k">on</span> <span class="n">assay</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="n">assay_id</span>
+</span><span class='line'><span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">cv</span> <span class="n">assay_cv</span> <span class="k">on</span> <span class="n">assay_cv</span><span class="p">.</span><span class="n">cv_id</span> <span class="o">=</span> <span class="n">assay</span><span class="p">.</span><span class="n">cv_id</span>
+</span><span class='line'><span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">pub</span> <span class="k">on</span> <span class="n">pub</span><span class="p">.</span><span class="n">pub_id</span> <span class="o">=</span> <span class="n">pst</span><span class="p">.</span><span class="n">pub_id</span>
+</span><span class='line'><span class="k">ORDER</span> <span class="k">BY</span> <span class="k">g</span><span class="p">.</span><span class="n">uniquename</span><span class="p">,</span> <span class="n">pub</span><span class="p">.</span><span class="n">uniquename</span><span class="p">,</span> <span class="n">phen</span><span class="p">.</span><span class="n">name</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>From the above SQL, <code>phen.name</code>, <code>env.name</code> &amp; <code>assay.name</code> are terms from ontologies viz. <code>Dicty Phenotypes</code>, <code>Dicty Environment</code> &amp; <code>Dictyostelium Assay</code> respectively. Read about ontology loading <a href="/obo-loading">here</a>.
+Columns in the exported TAB delimited file are: <em>DBS-ID</em>, <em>Phenotype term</em>, <em>Environment</em>, <em>Assay</em>, <em>PMID</em>, <em>Phenotype note</em></p>
+
+<h3>Props, Publications &amp; Characteristics</h3>
+
+<p>Props are additional information for the stock (in this case). For strains, we have props like &lsquo;mutagenesis method&rsquo;, &lsquo;mutant type&rsquo; &amp; &lsquo;synonym&rsquo;. And for plasmids, thr props are &lsquo;keyword&rsquo;, &lsquo;depositor&rsquo; &amp; &lsquo;synonym&rsquo;. The exported file has columns; <em>DBS-ID</em>, <em>Prop</em>, <em>Value</em>.</p>
+
+<p>Stocks have associated publications. Mainly the publications are PubMed IDs. However, stocks have some unresolvable internal references. With this export, these internal references are cleaned up and brought down a standard, PubMed. While exporting publications redundant/duplicate entries were thrown out and the data is exported as a TAB delimited file with 2 columns; <em>DBS_ID</em> &amp; <em>PMID</em></p>
+
+<p>The characteristics are strain characteristics. It is maintained as an <a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/strain_characteristics.obo">ontology</a>. Strain characteristics are exported as a 2 column TAB delimited file; <em>DBS_ID</em> &amp; <em>Characteristic Term</em></p>
+
+<h3>Parental strain &amp; Strain-Plasmid</h3>
+
+<p>Parental strains, as the name suggests, are parents of the strain records. There are only a few parents for <em>Dictyostelium discoideum</em>. However, depending on when these parents were submitted to the Dicty Stock Center and by whom, they can have multiple records in the database. So the issue is that a <a href="https://github.com/dictyBase/Modware-Loader/issues/62">strain can be linked to multiple entries of the same parent</a>. So now, we will be added generic strains to resolve this issue. All strains with parents with multiple IDs will point to only one generic strain. Currently data is exported in 2 columns; <em>DBS_ID</em> &amp; <em>DBS_ID of parent</em></p>
+
+<p>In case of strain-plasmids, there are <a href="https://github.com/dictyBase/Modware-Loader/issues/63">strain-plasmid entries that are not real plasmids</a> in the Dicty Stock Center. When the plasmid entri exists, the 2nd column exported is the DBP_ID, otherwise it is the <code>plasmid_name</code>. This issue is resolved with the stock data import</p>
+
+<h3>Plasmid sequence</h3>
+
+<p>The plasmid sequences are served from static files, currently. These sequences have been cleaned by running it through <code>Bio::SeqIO</code> and some manually. The files names are the database IDs for plasmids. The raw, pre-processed data can be found <a href="https://github.com/dictyBase/migration-data/tree/master/plasmid/raw_sequence">here</a>. This is the input for <code>--seq_data_dir</code> parameter of <a href="#running-the-commands"><code>modware-dump dictyplasmid</code></a>. The data is exported in <code>sequence</code> subdirectory of output directory. The file names are <em>DBP-ID</em>s and extension is the data format (genbank/fasta).</p>
+
+<h2>Command</h2>
+
+<p>The data is being exported using the <a href="https://github.com/dictyBase/Modware-Loader/blob/develop/bin/modware-dump"><code>modware-dump</code></a> command. All the modules used by this command can be found under <a href="https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Dump"><code>Modware::Dump</code></a> or <a href="https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Export"><code>Modware::Role::Stock::Export</code></a>. The command looks like this;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$&gt;</span> modware-dump
+</span><span class='line'>Available commands:
+</span><span class='line'>
+</span><span class='line'>    commands: list the application<span class="s1">&#39;s commands</span>
+</span><span class='line'><span class="s1">        help: display a command&#39;</span>s <span class="nb">help </span>screen
+</span><span class='line'>
+</span><span class='line'>dictyplasmid: Dump data <span class="k">for </span>dicty plasmids
+</span><span class='line'> dictystrain: Dump data <span class="k">for </span>dicty strains
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The options common for both commands are</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>-c --configfile               yaml config file to specify all <span class="nb">command </span>line options
+</span><span class='line'>-d --dir                      Folder under which input and output files can be
+</span><span class='line'>                              configured to be written
+</span><span class='line'>-i --input                    Name of the input file
+</span><span class='line'>-h -? --usage --help          Prints this usage information.
+</span><span class='line'>-o --output                   Name of the output file
+</span><span class='line'>--log_level                   Log level of the logger,  default is error
+</span><span class='line'>--attr --attribute            Additional database attribute
+</span><span class='line'>--dsn                         database DSN
+</span><span class='line'>-u --user                     database user
+</span><span class='line'>-l --logfile                  Name of logfile,  default goes to STDERR
+</span><span class='line'>--pass -p --password          database password
+</span><span class='line'>--legacy_dsn                  Legacy database DSN
+</span><span class='line'>-u --legacy_user              Legacy database user
+</span><span class='line'>--pass -p --legacy_password   Legacy database password
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$&gt;</span> modware-dump dictystrain <span class="o">[</span>-?cdhiloppuu<span class="o">]</span> <span class="o">[</span>long options...<span class="o">]</span>
+</span><span class='line'>    --data                        Option to dump all data <span class="o">(</span>default<span class="o">)</span> or <span class="o">(</span>strain,
+</span><span class='line'>                                  inventory, genotype, phenotype, publications,
+</span><span class='line'>                                  genes, characteristics, props, parent, plasmid<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$&gt;</span> modware-dump dictyplasmid <span class="o">[</span>-?cdhiloppuu<span class="o">]</span> <span class="o">[</span>long options...<span class="o">]</span>
+</span><span class='line'>  --data                        Option to dump all data <span class="o">(</span>default<span class="o">)</span> or <span class="o">(</span>plasmid, inventory,
+</span><span class='line'>                                  genbank, publications, genes, props<span class="o">)</span>
+</span><span class='line'>  --seq_data_dir                Path to folder with raw plasmid sequences. If <span class="nb">set</span>, it exports properly
+</span><span class='line'>                                  formatted GenBank/FastA sequences
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Running the commands</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="c1"># Export strain data</span>
+</span><span class='line'><span class="nv">$_</span><span class="o">&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">dump</span> <span class="n">dictystrain</span> <span class="o">-</span><span class="n">c</span> <span class="n">strain_export</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">output_dir</span> <span class="sr">&lt;folder-to-export-data&gt;</span> <span class="c1"># This will dump all data</span>
+</span><span class='line'><span class="nv">$_</span><span class="o">&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">dump</span> <span class="n">dictystrain</span> <span class="o">-</span><span class="n">c</span> <span class="n">strain_export</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">data</span> <span class="n">genotype</span> <span class="o">--</span><span class="n">data</span> <span class="n">inventory</span> <span class="o">--</span><span class="n">data</span> <span class="n">genes</span> <span class="o">--</span><span class="n">data</span> <span class="n">publications</span> <span class="c1"># Specific exports</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Export plasmid data</span>
+</span><span class='line'><span class="nv">$_</span><span class="o">&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">dump</span> <span class="n">dictyplasmid</span> <span class="o">-</span><span class="n">c</span> <span class="n">plasmid_export</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">output_dir</span> <span class="sr">&lt;folder-to-export-data&gt;</span> <span class="c1"># This will dump all data</span>
+</span><span class='line'><span class="nv">$_</span><span class="o">&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">dump</span> <span class="n">dictyplasmid</span> <span class="o">-</span><span class="n">c</span> <span class="n">plasmid_export</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">data</span> <span class="n">genbank</span> <span class="o">--</span><span class="n">data</span> <span class="n">genes</span> <span class="c1"># Specific exports</span>
+</span><span class='line'><span class="nv">$_</span><span class="o">&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">dump</span> <span class="n">dictyplasmid</span> <span class="o">-</span><span class="n">c</span> <span class="n">plasmid_export</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">sequence</span> <span class="c1"># Export plasmid sequences in FastA/GenBank</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+  
+    <footer>
+      <p class="meta">
+        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Yogesh Pandit</span></span>
+
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-04T16:07:00-05:00" pubdate data-updated="true">Oct 4<span>th</span>, 2013</time>
+        
+      </p>
+      
+        <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/stock-data-export/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/stock-data-export/index.html" >Tweet</a>
+  
+  
+  
+</div>
+
+      
+    </footer>
+  
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About </h1>
+  <p>Unofficial blog of dictybase MOD(model organism database) developers.
+  		<br/><a href="/about">More ....</a>
+  </p>
+</section>
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("dictybase", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/dictybase" class="twitter-follow-button" data-show-count="false">Follow @dictybase</a>
+  
+</section>
+
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/dictybase">@dictybase</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'dictybase',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/09/18/chado-loader-design/">Design Pattern of Chado Database Loaders</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum Annotations in GFF3 Format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the Dictybase GFF3</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - dictyBase Developers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+     <script type="text/javascript">
+          jQuery(document).ready(function() {
+              // Put a TOC right before the entry content.
+              generateTOC('article',  'Table of Contents');
+        });
+     </script>
+
+
+
+</body>
+</html>

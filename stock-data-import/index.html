@@ -1,0 +1,650 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>stock data import - dictyBase Developers</title>
+  <meta name="author" content="dictyBase Developers">
+
+  
+  <meta name="description" content="Stock Data Import Oct 4th, 2013 Data Data that will be imported is in the format explained here Rationale &amp; SQL Inventories The inventory data &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://dictyBase.github.com/stock-data-import">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="dictyBase Developers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  // Revert jQuery's '$' alias,  to avoid clashes with ender.js. NOTE: Use
+    // jQuery(...),  instead of $(...) from here on.
+      jQuery.noConflict();
+</script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript"></script>
+<script src="/javascripts/generate-toc.js" type="text/javascript"></script>
+
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">dictyBase Developers</a></h1>
+  
+    <h2>Solving one problem at a time</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:dictyBase.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/pages.html">Pages</a></li>
+  <li><a href="/pages/documentation">Documentation</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article role="article">
+  
+  <header>
+    <h1 class="entry-title">Stock Data Import</h1>
+    <p class="meta">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-04T17:13:00-05:00" pubdate data-updated="true">Oct 4<span>th</span>, 2013</time></p>
+  </header>
+  
+  <h2>Data</h2>
+
+<p>Data that will be imported is in the format explained <a href="/stock-data-export">here</a></p>
+
+<h2>Rationale &amp; SQL</h2>
+
+<h3>Inventories</h3>
+
+<ul>
+<li>The inventory data available for import is one inventory per row. Inventory being a property of the stock is stored in the <code>stockprop</code> table.</li>
+<li>We also have ontologies that explain the terms used to define a strain or a plasmid inventory. The ontologies are available here: <a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/strain_inventory.obo">strain</a> &amp; <a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/plasmid_inventory.obo">plasmid</a>. These ontologies can be loaded using <a href="/obo-loader">obo-loader</a>.</li>
+<li>As defined in the ontologies;
+
+<ul>
+<li>strain-inventory &ndash; A stock is said to have a strain inventory when it has <code>location, color, storage date, number of vials, obtained as, stored as, private comment, public comment</code></li>
+<li>plasmid-inventory &ndash; A stock is said to have a plasmid inventory when it has <code>location, color, storage date, obtained as, stored as, private comment, public comment</code></li>
+</ul>
+</li>
+<li>The inventory data is stored in the database as follows;
+
+<ul>
+<li><code>stockprop.type =&gt; { in =&gt; [qw/&lt;terms from inventory ontologies&gt;/]}</code> &amp; <code>stockprop.value =&gt; &lt;value of the term from ontology&gt;</code></li>
+</ul>
+</li>
+<li>Same <code>stockprop.rank</code> for each <em>DBS-ID</em>/<em>DBP-ID</em> is one inventory record.</li>
+</ul>
+
+
+<p>Once data is imported, it can be viewed/retrieved using the following SQL;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">s</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">dbs_id</span><span class="p">,</span> <span class="n">cvt</span><span class="p">.</span><span class="n">name</span> <span class="n">inventory_prop</span><span class="p">,</span> <span class="n">sp</span><span class="p">.</span><span class="n">value</span><span class="p">,</span> <span class="n">sp</span><span class="p">.</span><span class="n">rank</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">stockprop</span> <span class="n">sp</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock</span> <span class="n">s</span> <span class="k">ON</span> <span class="n">s</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">stock_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">typ</span> <span class="k">ON</span> <span class="n">typ</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">cvt</span> <span class="k">ON</span> <span class="n">cvt</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cv</span> <span class="k">ON</span> <span class="n">cv</span><span class="p">.</span><span class="n">cv_id</span> <span class="o">=</span> <span class="n">cvt</span><span class="p">.</span><span class="n">cv_id</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">cv</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;strain_inventory&#39;</span>
+</span><span class='line'><span class="k">AND</span> <span class="n">typ</span><span class="p">.</span><span class="n">name</span> <span class="k">IN</span> <span class="p">(</span><span class="s1">&#39;strain&#39;</span><span class="p">,</span> <span class="s1">&#39;plasmid&#39;</span><span class="p">)</span>
+</span><span class='line'><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">s</span><span class="p">.</span><span class="n">uniquename</span><span class="p">,</span> <span class="n">sp</span><span class="p">.</span><span class="n">rank</span><span class="p">,</span> <span class="n">cvt</span><span class="p">.</span><span class="n">name</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Strain-Plasmid</h3>
+
+<ul>
+<li>Strains have plasmids associated with it. Some of these plasmids are available in the Dicty StockCenter, while some are not.</li>
+<li>The plasmids that are not currently available in the Stock Center, may or may not be available in the future. Thus, we use the same data model as the one&rsquo;s available. The only difference is <code>stockcollection.name =&gt; 'Dicty Azkaban'</code></li>
+<li>If ever, these plasmids are made available we can change <code>stockcollection.name =&gt; Dicty Stockcenter</code></li>
+<li>For storing the relation we use the <code>stock_relationship</code> table.
+
+<ul>
+<li><code>stock_relationship.subject_id =&gt; stock.stock_id (plasmid)</code> &amp; <code>stock_relationship.object_id =&gt; stock.stock_id (strain)</code>. The relation term used is <code>part_of</code> which is defined under <code>cv.name =&gt; 'stock_relation'</code>.</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Once data is imported, it can be viewed/retrieved using the following SQL;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="k">DISTINCT</span> <span class="n">sbj</span><span class="p">.</span><span class="n">name</span> <span class="n">plasmid_name</span><span class="p">,</span> <span class="n">sbj</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">dbp_id</span><span class="p">,</span> <span class="n">ssc</span><span class="p">.</span><span class="n">name</span> <span class="n">plasmid_stockcollection</span><span class="p">,</span> <span class="n">rel</span><span class="p">.</span><span class="n">name</span> <span class="n">relation_term</span><span class="p">,</span> <span class="n">obj</span><span class="p">.</span><span class="n">name</span> <span class="n">strain_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">dbs_id</span><span class="p">,</span> <span class="n">osc</span><span class="p">.</span><span class="n">name</span> <span class="n">strain_stockcollection</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">stock_relationship</span> <span class="n">srel</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock</span> <span class="n">obj</span> <span class="k">ON</span> <span class="n">obj</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">srel</span><span class="p">.</span><span class="n">object_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">styp</span> <span class="k">ON</span> <span class="n">styp</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">obj</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock</span> <span class="n">sbj</span> <span class="k">ON</span> <span class="n">sbj</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">srel</span><span class="p">.</span><span class="n">subject_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">ptyp</span> <span class="k">ON</span> <span class="n">ptyp</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">sbj</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stockcollection_stock</span> <span class="n">oscs</span> <span class="k">ON</span> <span class="n">oscs</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">obj</span><span class="p">.</span><span class="n">stock_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stockcollection</span> <span class="n">osc</span> <span class="k">ON</span> <span class="n">osc</span><span class="p">.</span><span class="n">stockcollection_id</span> <span class="o">=</span> <span class="n">oscs</span><span class="p">.</span><span class="n">stockcollection_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stockcollection_stock</span> <span class="n">sscs</span> <span class="k">ON</span> <span class="n">sscs</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">sbj</span><span class="p">.</span><span class="n">stock_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stockcollection</span> <span class="n">ssc</span> <span class="k">ON</span> <span class="n">ssc</span><span class="p">.</span><span class="n">stockcollection_id</span> <span class="o">=</span> <span class="n">sscs</span><span class="p">.</span><span class="n">stockcollection_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">rel</span> <span class="k">ON</span> <span class="n">rel</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">srel</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">styp</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;strain&#39;</span>
+</span><span class='line'><span class="k">AND</span> <span class="n">ptyp</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;plasmid&#39;</span>
+</span><span class='line'><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">sbj</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">sbj</span><span class="p">.</span><span class="n">uniquename</span><span class="p">,</span> <span class="n">ssc</span><span class="p">.</span><span class="n">name</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Strain-Genes</h3>
+
+<ul>
+<li>Strains are associated with genes (features). The relation is mainly based on the genotype, which is common to the strain &amp; the gene. Thus the link between a strains (stock) and a gene (feature) can be modeled using the genotype.</li>
+<li>From our data, one strain has one genotype. However, the relation between strains &amp; genes is many-to-many.
+
+<ul>
+<li><code>stock -&gt; stock_genotype -&gt; genotype -&gt; feature_genotype -&gt; feature</code></li>
+</ul>
+</li>
+<li><code>feature_genotype</code> requires <code>cgroup</code>, <code>chromosome_id</code> and <code>cvterm_id</code>, which is not modeled yet.</li>
+</ul>
+
+
+<p>Once data is imported, it can be viewed/retrieved using the following SQL;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">s</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">dbs_id</span><span class="p">,</span> <span class="n">d</span><span class="p">.</span><span class="n">accession</span> <span class="n">ddbg_id</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">stock</span> <span class="n">s</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">str</span> <span class="k">ON</span> <span class="n">str</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock_genotype</span> <span class="n">sg</span> <span class="k">ON</span> <span class="n">sg</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">stock_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">genotype</span> <span class="k">g</span> <span class="k">ON</span> <span class="k">g</span><span class="p">.</span><span class="n">genotype_id</span> <span class="o">=</span> <span class="n">sg</span><span class="p">.</span><span class="n">genotype_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">feature_genotype</span> <span class="n">fg</span> <span class="k">ON</span> <span class="n">fg</span><span class="p">.</span><span class="n">genotype_id</span> <span class="o">=</span> <span class="k">g</span><span class="p">.</span><span class="n">genotype_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">feature</span> <span class="n">f</span> <span class="k">ON</span> <span class="n">f</span><span class="p">.</span><span class="n">feature_id</span> <span class="o">=</span> <span class="n">fg</span><span class="p">.</span><span class="n">feature_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">dbxref</span> <span class="n">d</span> <span class="k">ON</span> <span class="n">d</span><span class="p">.</span><span class="n">dbxref_id</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">dbxref_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">gene</span> <span class="k">ON</span> <span class="n">gene</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">gene</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;gene&#39;</span>
+</span><span class='line'><span class="k">AND</span> <span class="n">str</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;strain&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Publications &amp; Strain characteristics</h3>
+
+<ul>
+<li>All publication entries have been exported as PMIDs.</li>
+<li>Initially available in EndNote, the stockcenter publications have been converted to <a href="https://github.com/dictyBase/migration-data/blob/master/publications/dicty_refs_feb2012.bib">BibTeX formet</a>. This will be loaded using loader written for <a href="https://github.com/dictyBase/Modware-Loader/blob/develop/lib/Modware/Export/Command/chadopub2bib.pm">chadopub2bib</a>.</li>
+<li>Data import is pretty straight-forward. Data is stored in <code>stock_pub</code> linking table.</li>
+</ul>
+
+
+<p>Once data is imported, it can be viewed/retrieved using the following SQL;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">s</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">stock_id</span><span class="p">,</span> <span class="n">pub</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">pmid</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">stock_pub</span> <span class="n">sp</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock</span> <span class="n">s</span> <span class="k">ON</span> <span class="n">s</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">stock_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">pub</span> <span class="k">ON</span> <span class="n">pub</span><span class="p">.</span><span class="n">pub_id</span> <span class="o">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">pub_id</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Similarly, the model for strain characteristics is very straight-forward. Make sure you have the <a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/strain_characteristics.obo">strain_characteristics</a> ontology loaded.</li>
+<li>The linking table is <code>stock_cvterm</code>.</li>
+</ul>
+
+
+<p>Once data is imported, it can be viewed/retrieved using the following SQL;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">s</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">stock_id</span><span class="p">,</span> <span class="n">cvt</span><span class="p">.</span><span class="n">name</span> <span class="n">characteristic</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">stock_cvterm</span> <span class="n">scvt</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock</span> <span class="n">s</span> <span class="k">ON</span> <span class="n">s</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">scvt</span><span class="p">.</span><span class="n">stock_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">cvt</span> <span class="k">ON</span> <span class="n">cvt</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">scvt</span><span class="p">.</span><span class="n">cvterm_id</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Parental strains</h3>
+
+<ul>
+<li>The model for parental strains is the same as <a href="#strain-plasmid">strain-plasmids</a>.</li>
+<li>The only difference is:
+ <code>stock_relationship.subject_id =&gt; stock.stock_id (parent)</code>. And the relation term used is <code>is_parent_of</code> from <code>cv.name =&gt; 'stock_relation'</code>.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="k">DISTINCT</span> <span class="n">sbj</span><span class="p">.</span><span class="n">name</span> <span class="n">parent_strain</span><span class="p">,</span> <span class="n">sbj</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">dbs_id</span><span class="p">,</span> <span class="n">rel</span><span class="p">.</span><span class="n">name</span> <span class="n">relation_term</span><span class="p">,</span> <span class="n">cv</span><span class="p">.</span><span class="n">name</span> <span class="n">cv_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">.</span><span class="n">name</span> <span class="n">strain_name</span><span class="p">,</span> <span class="n">obj</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">dbs_id</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">stock_relationship</span> <span class="n">srel</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock</span> <span class="n">obj</span> <span class="k">ON</span> <span class="n">obj</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">srel</span><span class="p">.</span><span class="n">object_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">styp</span> <span class="k">ON</span> <span class="n">styp</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">obj</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock</span> <span class="n">sbj</span> <span class="k">ON</span> <span class="n">sbj</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">srel</span><span class="p">.</span><span class="n">subject_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">ptyp</span> <span class="k">ON</span> <span class="n">ptyp</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">sbj</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">rel</span> <span class="k">ON</span> <span class="n">rel</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">srel</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cv</span> <span class="k">ON</span> <span class="n">cv</span><span class="p">.</span><span class="n">cv_id</span> <span class="o">=</span> <span class="n">rel</span><span class="p">.</span><span class="n">cv_id</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">styp</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;strain&#39;</span>
+</span><span class='line'><span class="k">AND</span> <span class="n">ptyp</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;strain&#39;</span>
+</span><span class='line'><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">sbj</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">sbj</span><span class="p">.</span><span class="n">uniquename</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Phenotype</h3>
+
+<ul>
+<li>Phenotype is an important data component. It is something that is observed for a given <code>genotype</code>. Like explained in <a href="/stock-data-export">stock data export</a>, it is dependent on <code>genotype</code> and <code>environment</code></li>
+<li>The way it is modeled is the same as legacy.</li>
+<li>The ontologies that required to be loaded before importing this data; <a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/dicty_phenotypes.obo">Dicty Phenotypes</a>, <a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/dicty_environment.obo">Dicty Environment</a>, <a href="https://github.com/dictyBase/migration-data/blob/master/ontologies/dicty_assay.obo">Dictyostelium Assay</a>.</li>
+<li><p>The model for phenotype is based on the following concept;</p>
+
+<ul>
+<li><code>strain</code> has a <code>genotype</code>. This <code>genotype</code>, under certain <code>environment</code> expresses to show <code>phenotype</code>.</li>
+</ul>
+</li>
+<li><p>In the legacy database there are manually added phenotypes for strains. They are not linked to the <code>Dicty Phenotypes</code> ontology. To correct this, these phenotype terms were manually mapped to terms in the ontology and there corrected data can be found <a href="https://github.com/dictyBase/migration-data/blob/master/strain/DSC_phenotypes_orig.tsv">here</a>.</p></li>
+<li>This data is in a slightly different format that what is accepted for import. So the import data was manually created and can be found <a href="https://github.com/dictyBase/migration-data/blob/master/strain/DSC_phenotypes_import.tsv">here</a>. This file can be passed to <code>modware-import dictystrain2chado</code> using the <code>--dsc_phenotypes</code> parameter. As you will see, most of these phenotypes do not have a PMID associated with it. So we just use the <code>Dicty Phenotypes</code> reference as default.</li>
+</ul>
+
+
+<p>Once data is imported, it can be viewed/retrieved using the following SQL;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">s</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">dbs_is</span><span class="p">,</span> <span class="k">g</span><span class="p">.</span><span class="n">name</span> <span class="n">genotype</span><span class="p">,</span> <span class="n">phen</span><span class="p">.</span><span class="n">name</span> <span class="n">phenotype</span><span class="p">,</span> <span class="n">e</span><span class="p">.</span><span class="n">description</span> <span class="n">environment</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">phenstatement</span> <span class="n">pst</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">genotype</span> <span class="k">g</span> <span class="k">ON</span> <span class="k">g</span><span class="p">.</span><span class="n">genotype_id</span> <span class="o">=</span> <span class="n">pst</span><span class="p">.</span><span class="n">genotype_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock_genotype</span> <span class="n">sg</span> <span class="k">ON</span> <span class="n">sg</span><span class="p">.</span><span class="n">genotype_id</span> <span class="o">=</span> <span class="k">g</span><span class="p">.</span><span class="n">genotype_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock</span> <span class="n">s</span> <span class="k">ON</span> <span class="n">s</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">sg</span><span class="p">.</span><span class="n">stock_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">typ</span> <span class="k">ON</span> <span class="n">typ</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">phenotype</span> <span class="n">p</span> <span class="k">ON</span> <span class="n">p</span><span class="p">.</span><span class="n">phenotype_id</span> <span class="o">=</span> <span class="n">pst</span><span class="p">.</span><span class="n">phenotype_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">phen</span> <span class="k">ON</span> <span class="n">phen</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="n">observable_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">environment</span> <span class="n">e</span> <span class="k">ON</span> <span class="n">e</span><span class="p">.</span><span class="n">environment_id</span> <span class="o">=</span> <span class="n">pst</span><span class="p">.</span><span class="n">environment_id</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">typ</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;strain&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Plasmid Sequence</h3>
+
+<ul>
+<li>The plasmid sequences are available for import in either GenBank or FastA formats.</li>
+<li>With this import, we convert GenBank to FastA and import only FastA sequences.</li>
+<li>The plasmid sequences are stored in <code>feature</code> table. Default <code>uniquename</code> &amp; <code>dbxref.accession</code> is <em>DBP-ID</em>.</li>
+<li>In case of GenBank, the GenBank accession is the <code>dbxref.accession</code>.</li>
+<li>Also an entry is made in the <code>stockprop</code> table for each plasmid that has a sequence.
+
+<ul>
+<li>The <code>stockprop.type =&gt; 'plasmid_vector'</code> &amp; the <code>stockprop.value =&gt; feature_id</code>.</li>
+</ul>
+</li>
+<li>Also as plasmids do not have an organism defined (also not enough metadata available for a different kind of data model), default is <em>Dictyostelium discoideum</em>.</li>
+<li>For importing the sequences, param <code>--seq_data_dir</code> needs to be passed a path to <a href="https://github.com/dictyBase/migration-data/tree/master/plasmid/formatted_sequence">folder</a> with clean/formatted sequence files.</li>
+</ul>
+
+
+<h3>Plasmid Genes</h3>
+
+<ul>
+<li>Plasmids has genes associated with it (from legacy data). However, all the data about the sequence &amp; loci is not available.</li>
+<li>Had the sequence data been available, a diffeent data model would have been adopted.</li>
+<li>Currently, the genes associated with plasmids are stored in the <code>stockprop</code> table
+
+<ul>
+<li><code>stockprop.type =&gt; 'has_part'</code>. <code>has_part</code> is from <code>sequence</code> ontology.</li>
+<li><code>stockprop.value =&gt; DDB_G-ID</code></li>
+</ul>
+</li>
+</ul>
+
+
+<p>Once data is imported, it can be viewed/retrieved using the following SQL;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="k">DISTINCT</span> <span class="n">s</span><span class="p">.</span><span class="n">uniquename</span> <span class="n">dbp_id</span><span class="p">,</span> <span class="n">typ</span><span class="p">.</span><span class="n">name</span> <span class="n">relation</span><span class="p">,</span> <span class="n">sp</span><span class="p">.</span><span class="n">value</span> <span class="n">ddbg_id</span>
+</span><span class='line'><span class="k">FROM</span> <span class="n">stockprop</span> <span class="n">sp</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">stock</span> <span class="n">s</span> <span class="k">ON</span> <span class="n">s</span><span class="p">.</span><span class="n">stock_id</span> <span class="o">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">stock_id</span>
+</span><span class='line'><span class="k">JOIN</span> <span class="n">cvterm</span> <span class="n">typ</span> <span class="k">ON</span> <span class="n">typ</span><span class="p">.</span><span class="n">cvterm_id</span> <span class="o">=</span> <span class="n">sp</span><span class="p">.</span><span class="n">type_id</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">sp</span><span class="p">.</span><span class="n">value</span> <span class="k">LIKE</span> <span class="s1">&#39;DDB_G%&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Command</h2>
+
+<p>The data is being imported using the <a href="https://github.com/dictyBase/Modware-Loader/blob/develop/bin/modware-import"><code>modware-import</code></a> command. All the modules used by this command can be found under <a href="https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Import"><code>Modware::Import</code></a> and <a href="https://github.com/dictyBase/Modware-Loader/tree/develop/lib/Modware/Role/Stock/Import"><code>Modware::Role::Stock::Import</code></a>
+The command looks like this;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$&gt;</span> modware-import
+</span><span class='line'>Available commands:
+</span><span class='line'>
+</span><span class='line'>        commands: list the application<span class="s1">&#39;s commands</span>
+</span><span class='line'><span class="s1">           help: display a command&#39;</span>s <span class="nb">help </span>screen
+</span><span class='line'>
+</span><span class='line'>dictyplasmid2chado: Command to import plasmid data from dicty stock
+</span><span class='line'> dictystrain2chado: Command to import strain data from dicty stock
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The options common for both commands are</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>-c --configfile               yaml config file to specify all <span class="nb">command </span>line options
+</span><span class='line'>-d --dir                      Folder under which input and output files can be
+</span><span class='line'>                              configured to be written
+</span><span class='line'>-i --input                    Name of the input file
+</span><span class='line'>-h -? --usage --help          Prints this usage information.
+</span><span class='line'>--log_level                   Log level of the logger,  default is error
+</span><span class='line'>-u --user                     database user
+</span><span class='line'>--pass -p --password          database password
+</span><span class='line'>-l --logfile                  Name of logfile,  default goes to STDERR
+</span><span class='line'>--prune
+</span><span class='line'>--mock_pubs
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Options specific to the commands:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To run the command</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="c1"># Import plasmid data</span>
+</span><span class='line'><span class="vg">$&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">import</span> <span class="n">dictyplasmid2chado2</span> <span class="o">-</span><span class="n">c</span> <span class="n">plasmid_import</span><span class="o">.</span><span class="n">yaml</span>
+</span><span class='line'><span class="vg">$&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">import</span> <span class="n">dictyplasmid2chado2</span> <span class="o">-</span><span class="n">c</span> <span class="n">plasmid_import</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">data</span> <span class="n">inventory</span> <span class="o">--</span><span class="n">data</span> <span class="n">props</span> <span class="c1"># For specific imports </span>
+</span><span class='line'><span class="vg">$&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">import</span> <span class="n">dictyplasmid2chado2</span> <span class="o">-</span><span class="n">c</span> <span class="n">plasmid_import</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">seq_data_dir</span> <span class="sr">&lt;seq-data-dir&gt;</span> <span class="c1"># For sequence </span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Import strain data</span>
+</span><span class='line'><span class="vg">$&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">import</span> <span class="n">dictystrain2chado2</span> <span class="o">-</span><span class="n">c</span> <span class="n">strain_import</span><span class="o">.</span><span class="n">yaml</span>
+</span><span class='line'><span class="vg">$&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">import</span> <span class="n">dictystrain2chado2</span> <span class="o">-</span><span class="n">c</span> <span class="n">strain_import</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">prune</span> <span class="o">--</span><span class="n">mock_pubs</span> <span class="c1"># Options to prune or mock publications </span>
+</span><span class='line'><span class="vg">$&gt;</span> <span class="n">modware</span><span class="o">-</span><span class="nb">import</span> <span class="n">dictystrain2chado2</span> <span class="o">-</span><span class="n">c</span> <span class="n">strain_import</span><span class="o">.</span><span class="n">yaml</span> <span class="o">--</span><span class="n">data</span> <span class="n">inventory</span> <span class="o">--</span><span class="n">data</span> <span class="n">genotype</span> <span class="c1"># For specific imports </span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>NOTE:</strong> <em>Plasmid data will have to be imported before the strain data. This is because the strain-plasmids depend on the plasmid records</em></p>
+
+  
+    <footer>
+      <p class="meta">
+        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Yogesh Pandit</span></span>
+
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-04T17:13:00-05:00" pubdate data-updated="true">Oct 4<span>th</span>, 2013</time>
+        
+      </p>
+      
+        <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://dictyBase.github.com/stock-data-import/index.html" data-via="dictybase" data-counturl="http://dictyBase.github.com/stock-data-import/index.html" >Tweet</a>
+  
+  
+  
+</div>
+
+      
+    </footer>
+  
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About </h1>
+  <p>Unofficial blog of dictybase MOD(model organism database) developers.
+  		<br/><a href="/about">More ....</a>
+  </p>
+</section>
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("dictybase", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/dictybase" class="twitter-follow-button" data-show-count="false">Follow @dictybase</a>
+  
+</section>
+
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/dictybase">@dictybase</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'dictybase',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/09/18/chado-loader-design/">Design Pattern of Chado Database Loaders</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/03/06/exporting-discoideum-annotations/">Exporting D.discoideum Annotations in GFF3 Format</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2012/05/28/taming-the-gff3/">Taming the Dictybase GFF3</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - dictyBase Developers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+     <script type="text/javascript">
+          jQuery(document).ready(function() {
+              // Put a TOC right before the entry content.
+              generateTOC('article',  'Table of Contents');
+        });
+     </script>
+
+
+
+</body>
+</html>

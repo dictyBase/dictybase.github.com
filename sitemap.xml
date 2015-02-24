@@ -29,6 +29,10 @@
         <lastmod>2013-10-03T10:42:39-05:00</lastmod>
     </url>
     <url>
+        <loc>http://dictyBase.github.com/stock-data-export/</loc>
+        <lastmod>2013-10-24T16:00:00-05:00</lastmod>
+    </url>
+    <url>
         <loc>http://dictyBase.github.com/todo-list/</loc>
         <lastmod>2013-09-18T12:32:37-05:00</lastmod>
     </url>
@@ -43,6 +47,10 @@
     <url>
         <loc>http://dictyBase.github.com/prepare-remote-machine-for-gbrowse2-install/</loc>
         <lastmod>2013-09-18T12:32:37-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://dictyBase.github.com/stock-data-import/</loc>
+        <lastmod>2013-10-24T16:00:00-05:00</lastmod>
     </url>
     <url>
         <loc>http://dictyBase.github.com/prepare-data-for-gbrowse-visualization/</loc>
